@@ -13,10 +13,9 @@
     </field>
   </table>
   <table name="tags">
-          <field name="task_id" type="I" size="5"></field>
-	  <field name="tag" type="C" size="100"></field>
+    <field name="task_id" type="I" size="5"></field>
+    <field name="tag" type="C" size="100"></field>
   </table>
-
   <table name="admin_requests">
     <field name="request_id" type="I" size="5">
       <KEY/>
@@ -54,6 +53,10 @@
       <DEFAULT value="0"/>
     </field>
     <field name="deny_reason" type="C" size="255" />
+    <index name="resolved_project">
+      <col>resolved_by</col>
+      <col>project_id</col>
+    </index>
   </table>
   <table name="assigned">
     <field name="assigned_id" type="I" size="10">
@@ -177,6 +180,9 @@
     </field>
     <index name="task_id_comments">
       <col>task_id</col>
+    </index>
+    <index name="user_id_comments">
+      <col>user_id</col>
     </index>
   </table>
   <table name="dependencies">
@@ -358,11 +364,11 @@
     </field>
     <field name="view_own_tasks" type="I" size="1">
       <NOTNULL/>
-      <DEFAULT value="1"/>
+      <DEFAULT value="0"/>
     </field>
     <field name="view_groups_tasks" type="I" size="1">
       <NOTNULL/>
-      <DEFAULT value="1"/>
+      <DEFAULT value="0"/>
     </field>
     <index name="group_name">
       <UNIQUE/>
@@ -402,6 +408,12 @@
     <index name="idx_task_id">
       <col>task_id</col>
     </index>
+    <index name="idx_event_date">
+      <col>event_date</col>
+    </index>
+    <index name="idx_event_type">
+      <col>event_type</col>
+    </index>
   </table>
   <table name="list_category">
     <field name="category_id" type="I" size="3">
@@ -412,7 +424,7 @@
       <NOTNULL/>
       <DEFAULT value="0"/>
     </field>
-    <field name="category_name" type="C" size="30">
+    <field name="category_name" type="C" size="40">
       <NOTNULL/>
     </field>
     <field name="show_in_list" type="I" size="1">
@@ -468,7 +480,7 @@
       <KEY/>
       <AUTOINCREMENT/>
     </field>
-    <field name="resolution_name" type="C" size="30">
+    <field name="resolution_name" type="C" size="40">
       <NOTNULL/>
     </field>
     <field name="list_position" type="I" size="3">
@@ -513,6 +525,33 @@
       <UNIQUE/>
       <col>project_id</col>
       <col>status_name</col>
+    </index>
+  </table>
+  <table name="list_tag">
+    <field name="tag_id" type="I" size="5">
+      <KEY/>
+      <AUTOINCREMENT/>
+    </field>
+    <field name="project_id" type="I" size="5">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="tag_name" type="C" size="40">
+      <NOTNULL/>
+    </field>
+    <field name="list_position" type="I" size="3">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="show_in_list" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="class" type="C" size="100"/>
+    <index name="tag_name">
+      <UNIQUE/>
+      <col>project_id</col>
+      <col>tag_name</col>
     </index>
   </table>
   <table name="list_tasktype">
@@ -670,6 +709,10 @@
       <NOTNULL/>
       <DEFAULT value="0"/>
     </field>
+    <field name="others_viewroadmap" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
     <field name="anon_open" type="I" size="1">
       <NOTNULL/>
       <DEFAULT value="0"/>
@@ -750,13 +793,19 @@
       <NOTNULL/>
       <DEFAULT value="0"/>
     </field>
-    <field name="default_order_by" type="C" size="30">
+    <field name="default_order_by" type="C" size="100">
       <NOTNULL/>
       <DEFAULT value="id"/>
     </field>
     <field name="default_order_by_dir" type="C" size="5">
       <NOTNULL/>
       <DEFAULT value="desc"/>
+    </field>
+    <field name="custom_style" type="C" size="32">
+    </field>
+    <field name="freetagging" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="1"/>>
     </field>
   </table>
   <table name="registrations">
@@ -1010,11 +1059,24 @@
     <index name="task_project_super">
       <col>project_id</col>
       <col>supertask_id</col>
-      <col>list_order</col>
     </index>
     <index name="task_super">
       <col>supertask_id</col>
-      <col>list_order</col>
+      <col>task_id</col>
+      <col>project_id</col>
+    </index>
+  </table>
+  <table name="task_tag">
+    <field name="task_id" type="I" size="5">
+      <KEY/>
+    </field>
+    <field name="tag_id" type="I" size="5">
+      <KEY/>
+    </field>
+    <index name="task_id_tag">
+      <UNIQUE/>
+      <col>task_id</col>
+      <col>tag_id</col>
     </index>
   </table>
   <table name="users">
@@ -1025,7 +1087,7 @@
     <field name="user_name" type="C" size="32">
       <NOTNULL/>
     </field>
-    <field name="user_pass" type="C" size="40"/>
+    <field name="user_pass" type="C" size="60"/>
     <field name="real_name" type="C" size="100">
       <NOTNULL/>
     </field>
@@ -1253,8 +1315,11 @@
     <query>INSERT INTO prefs VALUES (DEFAULT, 'default_order_by', 'id');</query>
     <query>INSERT INTO prefs VALUES (DEFAULT, 'default_order_by_dir', 'desc');</query>
     <query>INSERT INTO prefs VALUES (DEFAULT, 'url_rewriting', '0');</query>
-    <query>INSERT INTO projects VALUES (DEFAULT, 'Default Project', 'CleanFS', 0, 'Welcome to your first Flyspray project!  We hope that Flyspray provides you with many hours of increased productivity.  If you have any issues, go to http://flyspray.org/support.                   You can customise this message by clicking the **Manage Project** link in the menu above...', 1, 'id category tasktype priority severity summary status progress', 'tasktype category severity priority status private assignedto reportedin dueversion duedate progress os votes', 1, 0, '', '', NULL, '0', NULL, NULL, '', 'en', 0, 0, 0, NULL, 'index', 0, 0,'Undecided', '', 0, 0, 0, 'id', 'DESC');</query>
-    <query>INSERT INTO tasks VALUES (1, 1, 1, 1130024797, 1, 0, 0, 0, ' ', 'Sample Task', 'This isn''t a real task.  You should close it and start opening some real tasks.', 2, 1, 1, 1, 0, 1, 1, 2, 0, 0, 0, 0, 0, '', '0', 0, 0, 0);</query>
+    <query>INSERT INTO prefs VALUES (DEFAULT, 'max_vote_per_day', '2');</query>
+    <query>INSERT INTO prefs VALUES (DEFAULT, 'votes_per_project', '10');</query>
+    <query>INSERT INTO prefs VALUES (DEFAULT, 'custom_style', '');</query>
+    <query>INSERT INTO projects VALUES (DEFAULT, 'Default Project', 'CleanFS', 0, 'Welcome to your first Flyspray project!  We hope that Flyspray provides you with many hours of increased productivity.  If you have any issues, go to http://flyspray.org . You can customise this message [[?do=pm&amp;project=1|here]]', 1, 'id category tasktype priority severity summary status progress', 'tasktype category severity priority status private assignedto reportedin dueversion duedate progress os votes', 1, 1, 0, '', '', NULL, '0', NULL, NULL, '', 'en', 0, 0, 0, NULL, 'index', 0, 0,'Undecided', '', 0, 0, 0, 'id', 'DESC', '', 1 );</query>
+    <query>INSERT INTO tasks VALUES (DEFAULT, 1, 1, 1452600000, 1, 0, 0, 0, ' ', 'Sample Task', 'This isn''t a real task.  You should close it and start opening some real tasks.', 2, 1, 1, 1, 0, 1, 1, 2, 0, 0, 0, 0, 0, '', '0', 0, 0, 0);</query>
     <query>INSERT INTO users VALUES (DEFAULT, 'super', '1b3231655cebb7a1f783eddf27d254ca', 'Mr Super User', 'super@example.com', 'super@example.com', 0, 1, 1, '', '', '', 25, 0, 0, 0, 0, 'en', '0', '', '', 0, 0);</query>
     <query>INSERT INTO users_in_groups VALUES (DEFAULT, 1, 1);</query>
   </sql>

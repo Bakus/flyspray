@@ -3,18 +3,21 @@
         <?php if ($user->perms('track_effort')) { ?>
         <input type="hidden" name="action" value="details.efforttracking"/>
         <button type="submit" name="start_tracking" value="true"><?php echo Filters::noXSS(L('starteffort')); ?></button>
-        </br>
+        <br />
         <label for="effort_to_add"><?php echo Filters::noXSS(L('manualeffort')); ?></label>
         <input id="effort_to_add" name="effort_to_add" class="text" type="text" size="5" maxlength="100" value='00:00'/>
         <button type="submit" name="manual_effort" value="true"><?php echo Filters::noXSS(L('addeffort')); ?></button>
         <?php } ?>
         <table class="userlist history">
+            <thead>
             <tr>
                 <th><?php echo Filters::noXSS(L('date')); ?></th>
                 <th><?php echo Filters::noXSS(L('user')); ?></th>
                 <th><?php echo Filters::noXSS(L('effort')); ?> (H:M)</th>
                 <th></th>
             </tr>
+            </thead>
+            <tbody>
             <?php
             foreach($effort->details as $details){
             ?>
@@ -43,6 +46,7 @@
                 </td>
             </tr>
             <?php } ?>
+            </tbody>
         </table>
     </form>
 </div>

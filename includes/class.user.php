@@ -48,27 +48,29 @@ class User
         if($this->isAnon()) {
             return;
         }
-
         // Only logged in users get to use the 'last search' functionality
+
         if ($do == 'index') {
-            $arr = array();
-            foreach ($this->search_keys as $key) {
-                $arr[$key] = Get::val($key, ($key == 'status') ? 'open' : null);
-            }
-            foreach (array('order', 'sort', 'order2', 'sort2') as $key) {
-                if (Get::val($key)) {
-                    $arr[$key] = Get::val($key);
-                }
-            }
+        	if (Post::val('search_name')) {
+        		$arr = array();
+        		foreach ($this->search_keys as $key) {
+        			$arr[$key] = Post::val($key, ($key == 'status') ? 'open' : null);
+        		}
+        		foreach (array('order', 'sort', 'order2', 'sort2') as $key) {
+        			if (Post::val($key)) {
+        				$arr[$key] = Post::val($key);
+        			}
+        		}
 
-            if (Get::val('search_name')) {
-                $fields = array('search_string'=> serialize($arr), 'time'=> time(),
-                                'user_id'=> $this->id , 'name'=> Get::val('search_name'));
-
-                $keys = array('name','user_id');
-
-                $db->Replace('{searches}', $fields, $keys);
-            }
+        		$fields = array(
+        			'search_string'=> serialize($arr),
+        			'time'=> time(),
+        			'user_id'=> $this->id ,
+        			'name'=> Post::val('search_name')
+        		);
+        		$keys = array('name','user_id');
+        		$db->Replace('{searches}', $fields, $keys);
+        	}
         }
 
         $sql = $db->Query('SELECT * FROM {searches} WHERE user_id = ? ORDER BY name ASC', array($this->id));
@@ -191,7 +193,7 @@ class User
             $proj = $proj['project_id'];
         }
 
-        return $this->perms('view_tasks', $proj)
+        return ($this->perms('view_tasks', $proj) || $this->perms('view_groups_tasks', $proj) || $this->perms('view_own_tasks', $proj))
           || ($this->perms('project_is_active', $proj)
               && ($this->perms('others_view', $proj) || $this->perms('project_group', $proj)));
     }
@@ -203,24 +205,24 @@ class User
         }
 
         // Split into several separate tests so I can keep track on whats happening.
-        
+
         // Project managers and admins allowed always.
         if ($this->perms('manage_project', $task['project_id'])
             || $this->perms('is_admin', $task['project_id'])) {
             return true;
         }
-        
+
         // Allow if "allow anyone to view this project" is checked
         // and task is not private.
         if ($this->perms('others_view', $task['project_id']) && !$task['mark_private']) {
             return true;
         }
-        
+
         if ($this->isAnon()) {
             // Following checks need identified user.
             return false;
         }
-        
+
         // Non-private task
         if (!$task['mark_private']) {
             // Can view tasks, always allow
@@ -247,18 +249,18 @@ class User
                 if ($task['opened_by'] == $this->id) {
                     return true;
                 }
-                // Fetch only once, could be needed twice
+                // Fetch only once, could be needed three times.
                 $assignees = Flyspray::GetAssignees($task['task_id']);
                 if (in_array($this->id, $assignees)) {
                     return true;
                 }
-                
+
                 // Must fetch other persons in the group now. Find out
                 // how to detect the right group for project and the
                 // other persons in it. Funny, found it in $perms.
                 $group = $this->perms('project_group', $task['project_id']);
                 $others = Project::listUsersIn($group);
-                
+
                 foreach ($others as $other) {
                     if ($other['user_id'] == $task['opened_by']) {
                         return true;
@@ -267,11 +269,31 @@ class User
                         return true;
                     }
                 }
+                
+                // Check the global group next. Note that for users in that group to be included,
+                // the has to be specified at global group level. So even if our permission system
+                // works by OR'ing the permissions together, who is actually considered to be in
+                // in the same group now depends on whether this permission has been given on global
+                // or project level. 
+                if ($this->perms('view_groups_tasks', 0)) {
+                    $group = $this->perms('project_group', 0);
+                    $others = Project::listUsersIn($group);
+
+                    foreach ($others as $other) {
+                        if ($other['user_id'] == $task['opened_by']) {
+                            return true;
+                        }
+                        if (in_array($other['user_id'], $assignees)) {
+                            return true;
+                        }
+                    }
+                }
+                
                 // No use to continue further.
                 return false;
             }
         }
-        
+
         // Private task, user must be either assigned to the task
         // or have opened it.
         if ($task['mark_private']) {
@@ -284,7 +306,7 @@ class User
             // No use to continue further.
             return false;
         }
-        
+
         // Could not find any permission for viewing the task.
         return false;
     }
@@ -377,7 +399,7 @@ class User
 
     public function can_vote($task)
     {
-        global $db;
+        global $db, $fs;
 
         if (!$this->perms('add_votes', $task['project_id'])) {
             return -1;
@@ -392,14 +414,31 @@ class User
             return -2;
         }
 
-        // Check that the user hasn't voted more than twice this day
+	/* FS 1.0alpha daily vote limit
+        // Check that the user hasn't voted more than allowed today
         $check = $db->Query('SELECT vote_id
                                FROM {votes}
                               WHERE user_id = ? AND date_time > ?',
                              array($this->id, time() - 86400));
-        if ($db->CountRows($check) > 2) {
+        if ($db->CountRows($check) >= $fs->prefs['max_vote_per_day']) {
             return -3;
         }
+	*/
+	
+	/* FS 1.0beta2 max votes per user per project limit */
+	$check = $db->Query('
+		SELECT COUNT(v.vote_id)
+		FROM {votes} v
+		JOIN {tasks} t ON t.task_id=v.task_id
+		WHERE user_id = ?
+		AND t.project_id = ?
+		AND t.is_closed <>1',
+		array($this->id, $task['project_id'])
+	);
+	if ($db->CountRows($check) >= $fs->prefs['votes_per_project']) {
+		return -4;
+	}
+	
 
         return 1;
     }
@@ -420,69 +459,63 @@ class User
 
         return !$this->isAnon();
     }
+    
    	/**
-	 * Returns the activity by between dates for a project and user.
-	 * @param date $startdate
-	 * @param date $enddate
-	 * @param integer $project_id
-	 * @param integer $userid
-	 * @return array used to get the count
-	 * @access public
-	 */
-	static function getActivityUserCount($startdate, $enddate, $project_id, $userid)
-	{
-		global $db;
-		//NOTE: from_unixtime() on mysql, to_timestamp() on PostreSQL
-        $func = ('mysql' == $db->dblink->dataProvider) ? 'from_unixtime' : 'to_timestamp';
-
-        $result = $db->Query("SELECT count(date({$func}(event_date))) as val
-							  FROM {history} h left join {tasks} t on t.task_id = h.task_id
-							  WHERE t.project_id = ? AND h.user_id = ?
-							  AND date({$func}(event_date))
-							  BETWEEN date(?)
-							  AND date(?)", array($project_id, $userid, $startdate, $enddate));
+     * Returns the activity by between dates for a project and user.
+     * @param date $startdate
+     * @param date $enddate
+     * @param integer $project_id
+     * @param integer $userid
+     * @return array used to get the count
+     * @access public
+     */
+    static function getActivityUserCount($startdate, $enddate, $project_id, $userid) {
+        global $db;
+        $result = $db->Query('SELECT count(event_date) as val
+                                FROM {history} h left join {tasks} t on t.task_id = h.task_id
+                               WHERE t.project_id = ? AND h.user_id = ? AND event_date BETWEEN ? AND ?',
+                            array($project_id, $userid, $startdate, $enddate));
         $result = $db->fetchCol($result);
-		return $result[0];
-	}
-	/**
-	 * Returns the day activity by the date for a project and user.
-	 * @param date $date
-	 * @param integer $project_id
-	 * @param integer $userid
-	 * @return array used to get the count
-	 * @access public
-	 */
-	static function getDayActivityByUser($date_start, $date_end, $project_id, $userid)
-	{
-		global $db;
-		//NOTE: from_unixtime() on mysql, to_timestamp() on PostreSQL
+        return $result[0];
+    }
+
+    /**
+     * Returns the day activity by the date for a project and user.
+     * @param date $date
+     * @param integer $project_id
+     * @param integer $userid
+     * @return array used to get the count
+     * @access public
+     */
+    static function getDayActivityByUser($date_start, $date_end, $project_id, $userid) {
+        global $db;
+        //NOTE: from_unixtime() on mysql, to_timestamp() on PostreSQL
         $func = ('mysql' == $db->dblink->dataProvider) ? 'from_unixtime' : 'to_timestamp';
 
         $result = $db->Query("SELECT count(date({$func}(event_date))) as val, MIN(event_date) as event_date
-							  FROM {history} h left join {tasks} t on t.task_id = h.task_id
-							  WHERE t.project_id = ? AND h.user_id = ?
-                              AND date({$func}(event_date)) BETWEEN date(?) and date(?)
-                              GROUP BY date({$func}(event_date)) ORDER BY event_date DESC",
-                              array($project_id, $userid, $date_start, $date_end));
+                                FROM {history} h left join {tasks} t on t.task_id = h.task_id
+                               WHERE t.project_id = ? AND h.user_id = ? AND event_date BETWEEN ? AND ?
+                            GROUP BY date({$func}(event_date)) ORDER BY event_date DESC",
+                            array($project_id, $userid, $date_start, $date_end));
 
-		$date1   = new \DateTime($date_start);
-        $date2   = new \DateTime($date_end);
-        $days    = $date1->diff($date2);
-        $days    = $days->format('%a');
+        $date1 = new \DateTime("@$date_start");
+        $date2 = new \DateTime("@$date_end");
+        $days = $date1->diff($date2);
+        $days = $days->format('%a');
         $results = array();
 
         for ($i = 0; $i < $days; $i++) {
-            $event_date = (string) strtotime("-{$i} day", strtotime($date_end));
+            $event_date = (string) strtotime("-{$i} day", $date_end);
             $results[date('Y-m-d', $event_date)] = 0;
         }
 
         while ($row = $result->fetchRow()) {
-            $event_date           = date('Y-m-d', $row['event_date']);
+            $event_date = date('Y-m-d', $row['event_date']);
             $results[$event_date] = (integer) $row['val'];
         }
 
-		return array_values($results);
-	}
+        return array_values($results);
+    }
 
     /* }}} */
 }

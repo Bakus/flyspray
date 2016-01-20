@@ -2,12 +2,12 @@
     <ul class="form_elements">
       <li>
         <label for="realname"><?php echo Filters::noXSS(L('realname')); ?></label>
-        <input id="realname" class="text" type="text" name="real_name" size="50" maxlength="100"
+        <input id="realname" class="text" type="text" name="real_name" maxlength="100"
           value="<?php echo Filters::noXSS(Req::val('real_name', $theuser->infos['real_name'])); ?>" />
       </li>
       <li>
         <label for="emailaddress"><?php echo Filters::noXSS(L('emailaddress')); ?></label>
-        <input id="emailaddress" class="text" type="text" name="email_address" size="50" maxlength="100"
+        <input id="emailaddress" class="text" type="text" name="email_address" maxlength="100"
           value="<?php echo Filters::noXSS(Req::val('email_address', $theuser->infos['email_address'])); ?>" />
       </li>
       <li>
@@ -17,7 +17,7 @@
       <?php if (!empty($fs->prefs['jabber_server'])):?>
       <li>
         <label for="jabberid"><?php echo Filters::noXSS(L('jabberid')); ?></label>
-        <input id="jabberid" class="text" type="text" name="jabber_id" size="50" maxlength="100"
+        <input id="jabberid" class="text" type="text" name="jabber_id" maxlength="100"
           value="<?php echo Filters::noXSS(Req::val('jabber_id', $theuser->infos['jabber_id'])); ?>" />
         <input type="hidden" name="old_jabber_id" value="<?php echo Filters::noXSS($theuser->infos['jabber_id']); ?>" />
       </li>
@@ -42,10 +42,10 @@
         <label for="notify_own"><?php echo Filters::noXSS(L('notifyown')); ?></label>
         <?php echo tpl_checkbox('notify_own', Req::val('notify_own', !Post::val('action') && $theuser->infos['notify_own']), 'notify_own'); ?>
       </li>
-      <li>
+      <!--<li>
         <label for="notify_online"><?php echo Filters::noXSS(L('notifyonline')); ?></label>
         <?php echo tpl_checkbox('notify_online', Req::val('notify_online', !Post::val('action')  && $theuser->infos['notify_online']), 'notify_online'); ?>
-      </li>
+      </li>-->
       <li>
         <label for="dateformat"><?php echo Filters::noXSS(L('dateformat')); ?></label>
         <select id="dateformat" name="dateformat">
@@ -79,7 +79,10 @@
       <li>
             <label for="langcode"><?php echo Filters::noXSS(L('language')); ?></label>
             <select id="langcode" name="lang_code">
-                <?php echo tpl_options(Flyspray::listLangs(), Req::val('lang_code', $theuser->infos['lang_code']), true); ?>
+                <?php 
+                #echo tpl_options(array_merge(array('browser', 'project'), Flyspray::listLangs()), Req::val('lang_code', $theuser->infos['lang_code']), true);
+                echo tpl_options( Flyspray::listLangs(), Req::val('lang_code', $theuser->infos['lang_code']), true);
+                ?>
             </select>
         </li>
       <li>
@@ -97,7 +100,7 @@
       <?php endif; ?>
       <li>
         <label for="groupin"><?php echo Filters::noXSS(L('globalgroup')); ?></label>
-        <select id="groupin" class="adminlist" name="group_in" <?php echo Filters::noXSS(tpl_disableif(!$user->perms('is_admin'))); ?>>
+        <select id="groupin" class="adminlist" name="group_in" <?php echo tpl_disableif(!$user->perms('is_admin')); ?>>
           <?php echo tpl_options($groups, Req::val('group_in', $theuser->infos['global_group'])); ?>
         </select>
         <input type="hidden" name="old_global_id" value="<?php echo Filters::noXSS($theuser->infos['global_group']); ?>" />
@@ -106,7 +109,7 @@
       <?php if ($proj->id): ?>
       <li>
         <label for="projectgroupin"><?php echo Filters::noXSS(L('projectgroup')); ?></label>
-        <select id="projectgroupin" class="adminlist" name="project_group_in" <?php echo Filters::noXSS(tpl_disableif(!$user->perms('manage_project'))); ?>>
+        <select id="projectgroupin" class="adminlist" name="project_group_in" <?php echo tpl_disableif(!$user->perms('manage_project')); ?>>
           <?php echo tpl_options(array_merge($project_groups, array(0 => array('group_name' => L('none'), 0 => 0, 'group_id' => 0, 1 => L('none')))), Req::val('project_group_in', $theuser->perms('project_group'))); ?>
         </select>
           <input type="hidden" name="old_project_id" value="<?php echo Filters::noXSS($theuser->perms('project_group')); ?>" />
@@ -122,16 +125,16 @@
       <?php if (!$user->perms('is_admin')): ?>
       <li>
         <label for="oldpass"><?php echo Filters::noXSS(L('oldpass')); ?></label>
-        <input id="oldpass" class="password" type="password" name="oldpass" value="<?php echo Filters::noXSS(Req::val('oldpass')); ?>" size="40" maxlength="100" />
+        <input id="oldpass" class="password" type="password" name="oldpass" value="<?php echo Filters::noXSS(Req::val('oldpass')); ?>" maxlength="100" />
       </li>
       <?php endif; ?>
       <li>
         <label for="changepass"><?php echo Filters::noXSS(L('changepass')); ?></label>
-        <input id="changepass" class="password" type="password" name="changepass" value="<?php echo Filters::noXSS(Req::val('changepass')); ?>" size="40" maxlength="100" />
+        <input id="changepass" class="password" type="password" name="changepass" value="<?php echo Filters::noXSS(Req::val('changepass')); ?>" maxlength="100" />
       </li>
       <li>
         <label for="confirmpass"><?php echo Filters::noXSS(L('confirmpass')); ?></label>
-        <input id="confirmpass" class="password" type="password" name="confirmpass" value="<?php echo Filters::noXSS(Req::val('confirmpass')); ?>" size="40" maxlength="100" />
+        <input id="confirmpass" class="password" type="password" name="confirmpass" value="<?php echo Filters::noXSS(Req::val('confirmpass')); ?>" maxlength="100" />
       </li>
       <?php endif; ?>
       <?php endif; ?>

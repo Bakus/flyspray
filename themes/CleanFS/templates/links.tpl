@@ -1,3 +1,5 @@
+<input id="menu1" type="checkbox">
+<label id="labelmenu1" for="menu1"></label>
 <div id="menu"><ul id="menu-list"><?php
 if ($user->isAnon()):
 	# 20150211 peterdd: pure css toggle using checked status, no js needed
@@ -6,22 +8,20 @@ if ($user->isAnon()):
         <label for="s_loginbox" id="show_loginbox" accesskey="l"><?php echo Filters::noXSS(L('login')); ?></label>
         <div id="loginbox" class="popup"><?php $this->display('loginbox.tpl'); ?></div>
 	</li><?php
-else:
-	?><li class="first"><a id="profilelink" <?php if(isset($_GET['do']) and $_GET['do'] == 'myprofile'): ?> class="active"<?php endif; ?> href="<?php echo Filters::noXSS(CreateURL('myprofile')); ?>" title="<?php echo Filters::noXSS(L('editmydetails')); ?>"><?php echo Filters::noXSS($user->infos['real_name']); ?> (<?php echo Filters::noXSS($user->infos['user_name']); ?>)</a>
+else: ?><li>
+		<a id="profilelink" <?php if($do == 'myprofile'): ?> class="active"<?php endif; ?> href="<?php echo Filters::noXSS(CreateURL('myprofile')); ?>" title="<?php echo Filters::noXSS(L('editmydetails')); ?> <?php echo Filters::noXSS($user->infos['real_name']); ?> (<?php echo Filters::noXSS($user->infos['user_name']); ?>)"><i class="fa fa-user fa-lg"></i></a>
 	</li><li>
 		<a id="lastsearchlink" href="#" accesskey="m" onclick="showhidestuff('mysearches');return false;" class="inactive"><?php echo Filters::noXSS(L('mysearch')); ?></a>
 		<div id="mysearches"><?php $this->display('links.searches.tpl'); ?></div>
 	</li><?php
 	if ($user->perms('is_admin')):
 	?><li>
-		<a id="optionslink"
-		<?php if(isset($_GET['do']) and $_GET['do'] == 'admin'): ?> class="active" <?php endif; ?>
-		href="<?php echo Filters::noXSS(CreateURL('admin', 'prefs')); ?>"><?php echo Filters::noXSS(L('admintoolbox')); ?></a>
+		<a id="optionslink"<?php if ($do=='admin'): ?> class="active"<?php endif; ?> href="<?php echo Filters::noXSS(CreateURL('admin', 'prefs')); ?>" title="<?php echo Filters::noXSS(L('admintoolbox')); ?>"><i class="fa fa-gears fa-lg"></i></a>
 	</li><?php
 	endif;
 	?><li>
 		<a id="logoutlink" href="<?php echo Filters::noXSS(CreateURL('logout', null)); ?>"
-		accesskey="l"><?php echo Filters::noXSS(L('logout')); ?></a>
+		accesskey="l" title="<?php echo Filters::noXSS(L('logout')); ?>"><i class="fa fa-power-off fa-lg"></i></a>
 	</li><?php
 	if (isset($_SESSION['was_locked'])):
 	?><li>
@@ -37,65 +37,68 @@ else:
 endif; ?>
 </ul>
 </div><div id="pm-menu">
+	<input id="pmmenu" type="checkbox">
+	<label id="labelpmmenu" for="pmmenu"></label>
 	<ul id="pm-menu-list"><?php
 	if ( count($fs->projects) ) {
 	?><li class="first">
 		<a id="toplevellink"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'toplevel'): ?> class="active" <?php endif; ?>
+		<?php if($do == 'toplevel'): ?> class="active" <?php endif; ?>
 		href="<?php echo Filters::noXSS(CreateURL('toplevel', $proj->id)); ?>"><?php echo Filters::noXSS(L('overview')); ?></a>
 	</li><?php
 	}
+	if ( (!$user->isAnon() && $user->perms('view_tasks')) || ($user->isAnon() && $proj->id >0 && $proj->prefs['others_view'])):
 	?><li>
 		<a id="homelink"
-		<?php if((!isset($_GET['do']) || $_GET['do'] == 'index') && !isset($_GET['dev'])): ?> class="active" <?php endif; ?>
+		<?php if($do == 'index' && !(isset($_GET['dev']) && !$user->isAnon() && $_GET['dev'] == $user->id)): ?> class="active" <?php endif; ?>
 		href="<?php echo Filters::noXSS(CreateURL('tasklist', $proj->id)); ?>"><?php echo Filters::noXSS(L('tasklist')); ?></a>
 	</li><?php
+	endif;
 	if ($proj->id && $user->perms('open_new_tasks')):
 	?><li>
 		<a id="newtasklink" href="<?php echo Filters::noXSS(CreateURL('newtask', $proj->id)); ?>"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'newtask'): ?> class="active" <?php endif; ?>
+		<?php if($do == 'newtask'): ?> class="active" <?php endif; ?>
 		accesskey="a"><?php echo Filters::noXSS(L('addnewtask')); ?></a>
 	</li><?php
 	if ($proj->id && $user->perms('add_multiple_tasks')) :
 	?><li>
 		<a id="newmultitaskslink" href="<?php echo Filters::noXSS(CreateURL('newmultitasks', $proj->id)); ?>"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'newmultitasks'): ?> class="active" <?php endif; ?>
-		accesskey="a"><?php echo Filters::noXSS(L('addmultipletasks')); ?></a>
-		</li><?php
+		<?php if($do == 'newmultitasks'): ?> class="active"<?php endif; ?>><?php echo Filters::noXSS(L('addmultipletasks')); ?></a>
+	</li><?php
 	endif;
-	elseif ($proj->id && $user->isAnon() && $proj->prefs['anon_open']):
-	?><li>
+	elseif ($proj->id && $user->isAnon() && $proj->prefs['anon_open']): ?><li>
 		<a id="anonopen"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'newtask'): ?> class="active" <?php endif; ?>
+		<?php if($do == 'newtask'): ?> class="active" <?php endif; ?>
 		href="?do=newtask&amp;project=<?php echo Filters::noXSS($proj->id); ?>"><?php echo Filters::noXSS(L('opentaskanon')); ?></a>
 	</li><?php
 	endif;
 	if ($proj->id && !$user->isAnon()): ?><li>
 		<a id="mytaskslink"
-		<?php if(isset($_GET['do'], $_GET['dev']) && $_GET['do'] == 'index' && $_GET['dev']): ?> class="active" <?php endif; ?>
+		<?php if($do == 'index' && isset($_GET['dev']) && $_GET['dev'] == $user->id): ?> class="active" <?php endif; ?>
 		href="<?php echo Filters::noXSS(CreateURL('mytasks', $proj->id, $user->id, null)); ?>"><?php echo Filters::noXSS(L('myassignedtasks')); ?></a>
 	</li><?php
 	endif;
 	if ($user->perms('view_reports')): ?><li>
 		<a id="reportslink"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'reports'): ?> class="active" <?php endif; ?>
+		<?php if( $do == 'reports'): ?> class="active" <?php endif; ?>
 		href="<?php echo Filters::noXSS(CreateURL('reports', $proj->id)); ?>"><?php echo Filters::noXSS(L('reports')); ?></a>
 	</li><?php
 	endif;
-	if ($proj->id && $user->perms('view_roadmap')): ?><li>
+	if ($proj->id && ($user->perms('view_roadmap') || ($user->isAnon() && $proj->prefs['others_viewroadmap'])) ): ?><li>
 		<a id="roadmaplink"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'roadmap'): ?> class="active" <?php endif; ?>
+		<?php if($do == 'roadmap'): ?> class="active" <?php endif; ?>
 		href="<?php echo Filters::noXSS(CreateURL('roadmap', $proj->id)); ?>"><?php echo Filters::noXSS(L('roadmap')); ?></a>
-	</li>
-	<?php
+	</li><?php
 	endif;
-	if ($proj->id && $user->perms('manage_project')):
-	?><li>
-		<a id="projectslink"
-		<?php if(isset($_GET['do']) && $_GET['do'] == 'pm'): ?> class="active" <?php endif; ?>
-		href="<?php echo Filters::noXSS(CreateURL('pm', 'prefs', $proj->id)); ?>"><?php echo Filters::noXSS(L('manageproject')); ?></a>
-	</li>
-	<?php
+	if (file_exists(BASEDIR . '/scripts/gantt.php') && $proj->id && $user->perms('view_roadmap')): ?><li>
+		<a id="gantt"
+		<?php if($do == 'gantt'): ?> class="active" <?php endif; ?>
+		href="<?php echo Filters::noXSS(CreateURL('gantt', $proj->id)); ?>" title="Gantt chart"><i class="fa fa-tasks fa-lg"></i></a>
+	</li><?php
+	endif;
+	if ($proj->id && $user->perms('manage_project')): ?><li>
+		<a id="projectslink"<?php if($do=='pm'): ?> class="active"<?php endif; ?> href="<?php echo Filters::noXSS(CreateURL('pm', 'prefs', $proj->id)); ?>"><?php echo Filters::noXSS(L('manageproject')); ?></a>
+	</li><?php
 	endif;
 	if ($proj->id && isset($pm_pendingreq_num) && $pm_pendingreq_num):
 	?><li>
@@ -103,7 +106,7 @@ endif; ?>
 		href="<?php echo Filters::noXSS(CreateURL('pm', 'pendingreq', $proj->id)); ?>"><?php echo Filters::noXSS($pm_pendingreq_num); ?> <?php echo Filters::noXSS(L('pendingreq')); ?></a>
 		</li><?php
 	endif;
-	if (!$proj->id && $user->perms('is_admin') && isset($admin_pendingreq_num) && $admin_pendingreq_num):
+	if ($user->perms('is_admin') && isset($admin_pendingreq_num) && $admin_pendingreq_num):
 	?><li>
 		<a class="pendingreq attention"
 		href="<?php echo Filters::noXSS(CreateURL('admin', 'userrequest')); ?>"><?php echo Filters::noXSS($admin_pendingreq_num); ?> <?php echo Filters::noXSS(L('adminrequestswaiting')); ?></a>
@@ -116,7 +119,7 @@ endif; ?>
 				<select name="project" onchange="document.getElementById('projectselectorform').submit()">
 				<?php echo tpl_options(array_merge(array(0 => L('allprojects')), $fs->projects), $proj->id); ?>
 				</select>
-				<button type="submit"><?php echo Filters::noXSS(L('switch')); ?></button>
+				<noscript><button type="submit"><?php echo Filters::noXSS(L('switch')); ?></button></noscript>
 				<input type="hidden" name="do" value="<?php echo Filters::noXSS($do); ?>" />
 				<input type="hidden" value="1" name="switch" />
 				<?php $check = array('area', 'id');
@@ -133,8 +136,8 @@ endif; ?>
 		</div>
 		<div id="showtask">
 			<form action="<?php echo Filters::noXSS($baseurl); ?>index.php" method="get">
-				<button type="submit"><?php echo Filters::noXSS(L('showtask')); ?> #</button>
-				<input id="task_id" name="show_task" class="text" type="text" size="10" accesskey="t" />
+				<noscript><button type="submit"><?php echo Filters::noXSS(L('showtask')); ?> #</button></noscript>
+				<input id="task_id" name="show_task" class="text" type="text" size="10" accesskey="t" placeholder="<?php echo Filters::noXSS(L('showtask')); ?> #" />
 			</form>
 		</div>
 	</div>

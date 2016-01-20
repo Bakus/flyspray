@@ -77,16 +77,18 @@
   <input type='submit' name='export_list' value='<?php echo Filters::noXSS(L('exporttasklist')); ?>'/>
 <style>
 #sc2,#s_searchstate{display:none;}
-#searchstateactions{color:#999;display:block;}
+#searchstateactions{color:#999;display:block;cursor:pointer;}
 #s_searchstate:checked ~ #sc2 {display:block;}
+#s_searchstate ~ label::before { content: "\25bc";}
+#s_searchstate:checked ~ label::before { content: "\25b2";}
 </style>
 <input id="s_searchstate" type="checkbox" name="advancedsearch"<?php if(Req::val('advancedsearch')): ?> checked="checked"<?php endif; ?>/>
-<label id="searchstateactions" for="s_searchstate"><span class="fa fa-caret-down"></span><?php echo Filters::noXSS(L('advanced')); ?></label>
+<label id="searchstateactions" for="s_searchstate"><?php echo Filters::noXSS(L('advanced')); ?></label>
 <div id="sc2" class="switchcontent">
 <?php if (!$user->isAnon()): ?>
 <fieldset>
   <div class="save_search"><label for="save_search" id="lblsaveas"><?php echo Filters::noXSS(L('saveas'));?></label>
-   <input class="text" type="text" value="<?php echo Filters::noXSS(Get::val('search_name')); ?>" id="save_search" name="search_name" size="15"/> <button onclick="savesearch('<?php echo Filters::escapeqs($_SERVER['QUERY_STRING']); ?>', '<?php echo Filters::noJsXSS($baseurl); ?>', '<?php echo Filters::noXSS(L('saving')); ?>')" type="button"><?php echo Filters::noXSS(L('OK')); ?></button>
+   <input class="text" type="text" value="<?php echo Filters::noXSS(Get::val('search_name')); ?>" id="save_search" name="search_name" size="15"/> <button onclick="savesearch('<?php echo Filters::escapeqs($_SERVER['QUERY_STRING']); ?>', '<?php echo Filters::noJsXSS($baseurl); ?>', '<?php echo Filters::noXSS(L('saving')); ?>', '<?php echo Filters::noJsXSS($_SESSION['csrftoken']); ?>')" type="button"><?php echo Filters::noXSS(L('OK')); ?></button>
   </div>
 </fieldset>
 <?php endif; ?>
@@ -107,6 +109,14 @@
                     <?php echo tpl_checkbox('only_primary', Get::has('only_primary'), 'only_primary'); ?>
                     <label class="left" for="only_primary"><?php echo Filters::noXSS(L('onlyprimary')); ?></label>
 
+		<?php echo tpl_checkbox('only_blocker', Get::has('only_blocker'), 'only_blocker'); ?>
+		<label class="left" for="only_blocker" id="blockerlabel"><?php echo Filters::noXSS(L('onlyblocker')); ?></label>
+		<span id="blockerornoblocker"><?php echo Filters::noXSS(L('blockerornoblocker')); ?></span>
+		<style>
+		#blockerornoblocker {display:none;color:#c00;}
+		#only_primary:checked ~ #only_blocker:checked ~ #blockerornoblocker {display:inline;}
+		</style>
+		
                     <?php echo tpl_checkbox('has_attachment', Get::has('has_attachment'), 'has_attachment'); ?>
                     <label class="left" for="has_attachment"><?php echo Filters::noXSS(L('hasattachment')); ?></label>
 
@@ -257,118 +267,102 @@
             </div>
 </form>
 <?php endif; ?>
-
+<?php if (isset($_GET['string']) || $total): ?>
 <div id="tasklist">
 <?php echo tpl_form(Filters::noXSS(CreateURL('project', $proj->id, null, $_GET)),'massops',null,null,'id="massops"'); ?>
 <div>
-<table id="tasklist_table">
-    <thead>
-    <tr>
-        <th class="caret">
-        </th>
-        <?php if (!$user->isAnon()): ?>
-        <th class="ttcolumn">
-            <?php if (!$user->isAnon() && $total): ?>
-            <a title="<?php echo Filters::noXSS(L('toggleselected')); ?>" href="javascript:ToggleSelected('massops')" onclick="massSelectBulkEditCheck();">
-            </a>
-            <?php endif; ?>
-        </th>
-        <?php endif; ?>
-        <?php foreach ($visible as $col): ?>
-        <?php echo tpl_list_heading($col, "<th%s>%s</th>"); ?>
-        <?php endforeach; ?>
-    </tr>
-    </thead>
-    <tbody>
-    <script type="text/javascript">
+<script type="text/javascript">
 	var cX = 0; var cY = 0; var rX = 0; var rY = 0;
 	function UpdateCursorPosition(e){ cX = e.pageX; cY = e.pageY;}
 	function UpdateCursorPositionDocAll(e){ cX = e.clientX; cY = e.clientY;}
 	if(document.all) { document.onmousemove = UpdateCursorPositionDocAll; }
 	else { document.onmousemove = UpdateCursorPosition; }
 	function AssignPosition(d) {
-		if(self.pageYOffset)
-		{
+		if (self.pageYOffset) {
 			rX = self.pageXOffset;
 			rY = self.pageYOffset;
-		}
-		else if(document.documentElement && document.documentElement.scrollTop) {
+		} else if(document.documentElement && document.documentElement.scrollTop) {
 			rX = document.documentElement.scrollLeft;
 			rY = document.documentElement.scrollTop;
-		}
-		else if(document.body) {
+		} else if(document.body) {
 			rX = document.body.scrollLeft;
 			rY = document.body.scrollTop;
 		}
-		if(document.all) {
+		if (document.all) {
 			cX += rX;
 			cY += rY;
 		}
 		d.style.left = (cX+10) + "px";
 		d.style.top = (cY+10) + "px";
 	}
-	function Show(elem, id)
-	{
+	function Show(elem, id) {
+		if(cY == 0) return;
 		var div = document.getElementById("desc_"+id);
 		AssignPosition(div);
 		div.style.display = "block";
 	}
-	function Hide(elem, id)
-	{
+	function Hide(elem, id)	{
 		document.getElementById("desc_"+id).style.display = "none";
 	}
-    </script>
-    <?php foreach ($tasks as $task_details):?>
-    <tr id="task<?php echo $task_details['task_id']; ?>" class="severity<?php echo Filters::noXSS($task_details['task_severity']); ?>" onmouseover="Show(this,<?php echo $task_details['task_id']; ?>)" onmouseout="Hide(this, <?php echo $task_details['task_id']; ?>)">
-        <td class="caret">
-        </td>
-        <?php if (!$user->isAnon()): ?>
-        <td class="ttcolumn">
-            <input class="ticktask" type="checkbox" name="ids[]" onclick="BulkEditCheck()" value="<?php echo Filters::noXSS($task_details['task_id']); ?>"/>
-        </td>
-        <?php endif;?>
-
-        <?php foreach ($visible as $col):
+</script>	
+<table id="tasklist_table">
+<colgroup>
+	<col class="caret" />
+	<?php if (!$user->isAnon() && $proj->id !=0 && $total): ?><col class="toggle" /><?php endif; ?>
+	<?php foreach ($visible as $col): ?>
+	<col class="<?php echo $col; ?>" />
+	<?php endforeach; ?>
+</colgroup>
+<thead>
+<tr>
+	<th class="caret"></th>
+	<?php if (!$user->isAnon() && $proj->id !=0 && $total): ?>
+	<th class="ttcolumn"><a title="<?php echo Filters::noXSS(L('toggleselected')); ?>" href="javascript:ToggleSelected('massops')" onclick="massSelectBulkEditCheck();"></a></th>
+	<?php
+	endif;
+	foreach ($visible as $col):
+	echo tpl_list_heading($col, "<th%s>%s</th>");
+	endforeach;
+	?>
+</tr>
+</thead>
+<tbody>
+<?php foreach ($tasks as $task):?>
+<tr id="task<?php echo $task['task_id']; ?>" class="severity<?php echo $task['task_severity'];  echo $task['is_closed'] ==1 ? ' closed': '';?>" onmouseover="Show(this,<?php echo $task['task_id']; ?>)" onmouseout="Hide(this, <?php echo $task['task_id']; ?>)">
+	<td class="caret"></td>
+	<?php if (!$user->isAnon() && $proj->id !=0): ?>
+	<td class="ttcolumn"><input class="ticktask" type="checkbox" name="ids[]" onclick="BulkEditCheck()" value="<?php echo $task['task_id']; ?>"/></td>
+	<?php
+	endif;
+	foreach ($visible as $col):
 		if($col == 'progress'):?>
-        	<td class="task_progress">
-            <div class="progress_bar_container">
-                <span><?php echo Filters::noXSS($task_details['percent_complete']); ?>%</span>
-
-                <div class="progress_bar" style="width:<?php echo Filters::noXSS($task_details['percent_complete']); ?>%"></div>
-            </div>
-        </td>
-        	<?php else: ?>
-        	<?php echo tpl_draw_cell($task_details, $col); ?>
-        	<?php endif;
-        endforeach; ?>
-<td id="desc_<?php echo $task_details['task_id']; ?>" class="descbox box">
-<b><?php echo L('taskdescription'); ?></b>
-<?php echo $task_details['detailed_desc'] ? TextFormatter::render($task_details['detailed_desc'], 'task', $task_details['task_id']) : '<p>'.L('notaskdescription').'</p>'; ?>
-</td>
-    </tr>
-    <?php endforeach; ?>
-    </tbody>
+	<td class="task_progress"><div class="progress_bar_container"><span><?php echo $task['percent_complete']; ?>%</span><div class="progress_bar" style="width:<?php echo $task['percent_complete']; ?>%"></div></div></td>
+		<?php else:
+		echo tpl_draw_cell($task, $col);
+		endif;
+	endforeach;
+	?>
+	<td id="desc_<?php echo $task['task_id']; ?>" class="descbox box">
+	<b><?php echo L('taskdescription'); ?></b>
+	<?php echo $task['detailed_desc'] ? TextFormatter::render($task['detailed_desc'], 'task', $task['task_id'], $task['desccache']) : '<p>'.L('notaskdescription').'</p>'; ?>
+	</td>
+</tr>
+<?php endforeach; ?>
+</tbody>
 </table>
 <table id="pagenumbers">
-    <tr>
-        <?php if ($total): ?>
-        <td id="taskrange">
-            <?php echo sprintf(L('taskrange'), $offset + 1,
-            ($offset + $perpage > $total ? $total : $offset + $perpage), $total); ?>
-
-            <?php if (!$proj->id == 0 && !$user->isAnon() && $total){ ?>
-            <?php } ?>
-        </td>
-        <td id="numbers"><?php echo pagenums($pagenum, $perpage, $total); ?></td>
-        <?php else: ?>
-        <td id="taskrange"><strong><?php echo Filters::noXSS(L('noresults')); ?></strong></td>
-        <?php endif; ?>
-    </tr>
+<tr>
+<?php if ($total): ?>
+	<td id="taskrange"><?php echo sprintf(L('taskrange'), $offset + 1, ($offset + $perpage > $total ? $total : $offset + $perpage), $total); ?></td>
+	<td id="numbers"><?php echo pagenums($pagenum, $perpage, $total); ?></td>
+<?php else: ?>
+	<td id="taskrange"><strong><?php echo Filters::noXSS(L('noresults')); ?></strong></td>
+<?php endif; ?>
+</tr>
 </table>
 
-<!--- Bulk editing Tasks --->
-<?php if (!$proj->id == 0): ?>
-<?php if (!$user->isAnon() && $total): ?>
+<!-- Bulk editing Tasks -->
+<?php if (!$user->isAnon() && $proj->id !=0 && $total): ?>
 <!-- Grab fields wanted for this project so we only show those specified in the settings -->
 <script>Effect.Fade('bulk_edit_selectedItems');</script>
 <div id="bulk_edit_selectedItems" style="display:none">
@@ -554,9 +548,9 @@
             <!-- If there is only one choice of project, then don't bother showing it -->
             <?php if (count($fs->projects) > 1) { ?>
             <li>
-                <?php } else { ?>
+            <?php } else { ?>
             <li style="display:none">
-                <?php } ?>
+            <?php } ?>
                 <?php $projectsList = $fs->listProjects(); ?>
                 <?php array_unshift($projectsList,L('notspecified')); ?>
                 <label for="bulk_projects"><?php echo Filters::noXSS(L('attachedtoproject')); ?></label>
@@ -564,15 +558,13 @@
                     <?php echo tpl_options($projectsList); ?>
                 </select>
             </li>
-            </li>
-
         </ul>
         <button type="submit" name="updateselectedtasks" value="true"><?php echo Filters::noXSS(L('updateselectedtasks')); ?></button>
     </fieldset>
     <fieldset>
 	<legend><b><?php echo L('closeselectedtasks'); ?></b></legend>
             <div>
-                <select class="adminlist" name="resolution_reason" onmouseup="Event.stop(event);">
+                <select class="adminlist" name="resolution_reason" onmouseup="event.stopPropagation();">
                     <option value="0"><?php echo Filters::noXSS(L('selectareason')); ?></option>
                     <?php echo tpl_options($proj->listResolutions(), Req::val('resolution_reason')); ?>
                 </select>
@@ -586,9 +578,8 @@
     </fieldset>
 
 </div>
-
-<?php endif ?>
-<?php endif ?>
+<?php endif; /* !$user->isAnon() && $proj-> !=0 && $total */ ?>
 </div>
 </form>
 </div>
+<?php endif; /* isset($_GET['string'] || $total */ ?>

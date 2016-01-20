@@ -21,15 +21,20 @@ class Flyspray
      * Current Flyspray version. Change this for each release.  Don't forget!
      * @access public
      * @var string
+     * For github development use e.g. '1.0-beta dev' ; Flyspray::base_version() currently splits on the ' ' ...
+     * For making github release use e.g. '1.0-beta' here.
+     * For online version check www.flyspray.org/version.txt use e.g. '1.0-beta'
+     * For making releases on github use github's recommended versioning e.g. 'v1.0-beta' --> release files are then named v1.0-beta.zip and v1.0-beta.tar.gz and unzips to a flyspray-1.0-beta/ directory.
+     * Well, looks like a mess but hopefully consolidate this in future. Maybe use version_compare() everywhere in future instead of an own invented Flyspray::base_version()
      */
-    public $version = '1.0 Alpha';
+	public $version = '1.0-rc dev';
 
     /**
      * Flyspray preferences
      * @access public
      * @var array
      */
-    public $prefs   = array();
+    public $prefs = array();
 
     /**
      * Max. file size for file uploads. 0 = no uploads allowed
@@ -82,6 +87,10 @@ class Flyspray
 
         $sizes = array();
         foreach (array(ini_get('memory_limit'), ini_get('post_max_size'), ini_get('upload_max_filesize')) as $val) {
+        	if($val === '-1'){
+				// unlimited value in php configuration
+				$val = PHP_INT_MAX;
+			}
             if (!$val || $val < 0) {
                 continue;
             }
@@ -158,6 +167,9 @@ class Flyspray
 
         $url = FlySpray::absoluteURI($url);
 
+	if($_SERVER['REQUEST_METHOD']=='POST' && version_compare(PHP_VERSION, '5.4.0')>=0 ) {
+		http_response_code(303);
+	}
         header('Location: '. $url);
 
         if ($rfc2616 && isset($_SERVER['REQUEST_METHOD']) &&
@@ -363,9 +375,11 @@ class Flyspray
         }
 
         if ($get_details = $db->FetchRow($get_details)) {
-            $get_details += array('severity_name' => $fs->severities[$get_details['task_severity']]);
-            $get_details += array('priority_name' => $fs->priorities[$get_details['task_priority']]);
+            $get_details += array('severity_name' => $get_details['task_severity']==0 ? '' : $fs->severities[$get_details['task_severity']]);
+            $get_details += array('priority_name' => $get_details['task_priority']==0 ? '' : $fs->priorities[$get_details['task_priority']]);
         }
+	
+	$get_details['tags'] = Flyspray::getTags($task_id);
 
         $get_details['assigned_to'] = $get_details['assigned_to_name'] = array();
         if ($assignees = Flyspray::GetAssignees($task_id, true)) {
@@ -376,29 +390,32 @@ class Flyspray
 
         return $get_details;
     } // }}}
-    // List projects {{{
-    /**
-     * Returns a list of all projects
-     * @param bool $active_only show only active projects
-     * @access public static
-     * @return array
-     * @version 1.0
-     */
-    public static function listProjects(/*$active_only = true*/) // FIXME: $active_only would not work since the templates are accessing the returned array implying to be sortyed by project id, which is aparently wrong and error prone ! Same applies to the case when a project was deleted, causing a shift in the project id sequence, hence -> severe bug!
-    {
-        global $db;
 
-        $query = 'SELECT  project_id, project_title FROM {projects}';
+	// List projects {{{
+	/**
+	* Returns a list of all projects
+	* @param bool $active_only show only active projects
+	* @access public static
+	* @return array
+	* @version 1.0
+	*/
+	// FIXME: $active_only would not work since the templates are accessing the returned array implying to be sortyed by project id, which is aparently wrong and error prone ! Same applies to the case when a project was deleted, causing a shift in the project id sequence, hence -> severe bug!
+	# comment by peterdd 20151012: reenabled param active_only with false as default. I do not see a problem within current Flyspray version. But consider using $fs->projects when possible, saves this extra sql request.
+	public static function listProjects($active_only = false)
+	{
+		global $db;
+		$query = 'SELECT project_id, project_title, project_is_active FROM {projects}';
 
-//         if ($active_only)  {
-//             $query .= ' WHERE  project_is_active = 1';
-//         }
+		if ($active_only) {
+			$query .= ' WHERE project_is_active = 1';
+		}
 
-        $query .= ' ORDER BY  project_id ASC';
+		$query .= ' ORDER BY project_is_active DESC, project_id DESC'; # active first, latest projects first for option groups and new projects are probably the most used.
 
-        $sql = $db->Query($query);
-        return $db->fetchAllArray($sql);
-    } // }}}
+		$sql = $db->Query($query);
+		return $db->fetchAllArray($sql);
+	} // }}}
+    
     // List themes {{{
     /**
      * Returns a list of all themes
@@ -408,22 +425,23 @@ class Flyspray
      */
     public static function listThemes()
     {
-        $theme_array = array();
-        if ($handle = opendir(dirname(dirname(__FILE__)) . '/themes/')) {
+        $themes = array();
+        $dirname = dirname(dirname(__FILE__));
+        if ($handle = opendir($dirname . '/themes/')) {
             while (false !== ($file = readdir($handle))) {
-                if ($file != '.' && $file != '..' && is_file(dirname(dirname(__FILE__)) . "/themes/$file/theme.css")) {
-                    $theme_array[] = $file;
+                if (substr($file,0,1) != '.' && is_dir("$dirname/themes/$file") && is_file("$dirname/themes/$file/theme.css")) {
+                    $themes[] = $file;
                 }
             }
             closedir($handle);
         }
 
-        sort($theme_array);
-        return $theme_array;
+        sort($themes);
+        return $themes;
     } // }}}
     // List a project's group {{{
     /**
-     * Returns a list of a project's groups
+     * Returns a list of global groups or a project's groups
      * @param integer $proj_id
      * @access public static
      * @return array
@@ -431,18 +449,19 @@ class Flyspray
      */
     public static function listGroups($proj_id = 0)
     {
-        global $db;
-        $res = $db->Query('SELECT  *
-                             FROM  {groups}
-                            WHERE  project_id = ?
-                         ORDER BY  group_id ASC', array($proj_id));
+	global $db;
+	$res = $db->Query('SELECT g.*, COUNT(uig.user_id) AS users
+		FROM {groups} g
+		LEFT JOIN {users_in_groups} uig ON uig.group_id=g.group_id
+		WHERE project_id = ?
+		GROUP BY g.group_id
+		ORDER BY g.group_id ASC', array($proj_id));
         return $db->FetchAllArray($res);
     } // }}}
 
     // Get info on all users {{{
     /**
-     * Returns a list of a project's groups
-     * @param integer $proj_id
+     * Returns a list of a all users
      * @access public static
      * @return array
      * @version 1.0
@@ -450,9 +469,9 @@ class Flyspray
     public static function listUsers()
     {
         global $db;
-        $res = $db->Query('SELECT  account_enabled, user_id, user_name, real_name, email_address
-                             FROM  {users}
-                         ORDER BY  account_enabled DESC, user_name ASC');
+        $res = $db->Query('SELECT account_enabled, user_id, user_name, real_name, email_address
+			FROM {users}
+			ORDER BY account_enabled DESC, UPPER(user_name) ASC');
         return $db->FetchAllArray($res);
     }
 
@@ -539,7 +558,7 @@ class Flyspray
     // Log a request for an admin/project manager to do something {{{
     /**
      * Adds an admin request to the database
-     * @param integer $type 1: Task close, 2: Task re-open
+     * @param integer $type 1: Task close, 2: Task re-open, 3: Pending user registration
      * @param integer $project_id
      * @param integer $task_id
      * @param integer $submitter
@@ -558,7 +577,7 @@ class Flyspray
     // Check for an existing admin request for a task and event type {{{;
     /**
      * Checks whether or not there is an admin request for a task
-     * @param integer $type 1: Task close, 2: Task re-open
+     * @param integer $type 1: Task close, 2: Task re-open, 3: Pending user registration
      * @param integer $task_id
      * @access public static
      * @return bool
@@ -630,6 +649,7 @@ class Flyspray
      * Check if a user provided the right credentials
      * @param string $username
      * @param string $password
+     * @param string $method '', 'oauth', 'ldap', 'native'
      * @access public static
      * @return integer user_id on success, 0 if account or user is disabled, -1 if password is wrong
      * @version 1.0
@@ -660,6 +680,7 @@ class Flyspray
             return 0;
         }
 
+        if( $method != 'ldap' ){
         //encrypt the password with the method used in the db
         switch (strlen($auth_details['user_pass'])) {
             case 40:
@@ -672,7 +693,7 @@ class Flyspray
                 $password = crypt($password, $auth_details['user_pass']); //using the salt from db
                 break;
         }
-
+        }
         if ($auth_details['lock_until'] > 0 && $auth_details['lock_until'] < time()) {
             $db->Query('UPDATE {users} SET lock_until = 0, account_enabled = 1, login_attempts = 0
                            WHERE user_id = ?', array($auth_details['user_id']));
@@ -680,15 +701,21 @@ class Flyspray
             $_SESSION['was_locked'] = true;
         }
 
-        // Compare the crypted password to the one in the database
         // skip password check if the user is using oauth
-        $pwOk = ($method == 'oauth') ? true : ($password == $auth_details['user_pass']);
+        if($method == 'oauth'){
+            $pwOk = true;
+        } elseif( $method == 'ldap'){
+            $pwOk = Flyspray::checkForLDAPUser($username, $password);
+        }else{
+            // Compare the crypted password to the one in the database
+            $pwOk = ($password == $auth_details['user_pass']);
+        }
+
         // Admin users cannot be disabled
         if ($auth_details['group_id'] == 1 /* admin */ && $pwOk) {
             return $auth_details['user_id'];
         }
-        if ($pwOk && $auth_details['account_enabled'] == '1' && $auth_details['group_open'] == '1')
-        {
+        if ($pwOk && $auth_details['account_enabled'] == '1' && $auth_details['group_open'] == '1'){
             return $auth_details['user_id'];
         }
 
@@ -712,6 +739,58 @@ class Flyspray
         }
     }
 
+	/**
+	* 20150320 just added from provided patch, untested!
+	*/
+	public static function checkForLDAPUser($username, $password)
+	{
+		# TODO: add to admin settings area, maybe let user set the config at final installation step
+		$ldap_host = 'ldaphost';
+		$ldap_port = '389';
+		$ldap_version = '3';
+		$base_dn = 'OU=SBSUsers,OU=Users,OU=MyBusiness,DC=MyDomain,DC=local';
+		$ldap_search_user = 'ldapuser@mydomain.local';
+		$ldap_search_pass = "ldapuserpass";
+		$filter = "SAMAccountName=%USERNAME%"; // this is for AD - may be different with other setups
+		$username = $username;
+
+		if (strlen($password) == 0){ // LDAP will succeed binding with no password on AD (defaults to anon bind)
+			return false;
+		}
+
+		$rs = ldap_connect($ldap_host, $ldap_port);
+		@ldap_set_option($rs, LDAP_OPT_PROTOCOL_VERSION, $ldap_version);
+		@ldap_set_option($rs, LDAP_OPT_REFERRALS, 0);
+		$ldap_bind_dn = empty($ldap_search_user) ? NULL : $ldap_search_user;
+		$ldap_bind_pw = empty($ldap_search_pass) ? NULL : $ldap_search_pass;
+		if (!$bindok = @ldap_bind($rs, $ldap_bind_dn, $ldap_search_pass)){
+			// Uncomment for LDAP debugging
+			$error_msg = ldap_error($rs);
+			die("Couldn't bind using ".$ldap_bind_dn."@".$ldap_host.":".$ldap_port." Because:".$error_msg);
+			return false;
+		} else{
+			$filter_r = str_replace("%USERNAME%", $username, $filter);
+			$result = @ldap_search($rs, $base_dn, $filter_r);
+			if (!$result){ // ldap search returned nothing or error
+				return false;
+			}
+			$result_user = ldap_get_entries($rs, $result);
+			if ($result_user["count"] == 0){ // No users match the filter
+				return false;
+			}
+			$first_user = $result_user[0];
+			$ldap_user_dn = $first_user["dn"];
+			// Bind with the dn of the user that matched our filter (only one user should match sAMAccountName or uid etc..)
+			if (!$bind_user = @ldap_bind($rs, $ldap_user_dn, $password)){
+				$error_msg = ldap_error($rs);
+				die("Couldn't bind using ".$ldap_user_dn."@".$ldap_host.":".$ldap_port." Because:".$error_msg);
+				return false;
+			} else{
+				return true;
+			}
+		}
+	}
+
 
     // Set cookie {{{
     /**
@@ -730,6 +809,8 @@ class Flyspray
      */
     public static function setCookie($name, $val, $time = null, $path=null, $domain=null, $secure=false, $httponly=false)
     {
+	global $conf;
+	
         if (null===$path){
             $url = parse_url($GLOBALS['baseurl']);
         }else{
@@ -743,7 +824,7 @@ class Flyspray
             $domain='';
         }
         if(null===$secure){
-            $secure=false;
+            $secure = isset($conf['general']['securecookies']) ? $conf['general']['securecookies'] : false;
         }
         if((strlen($name) + strlen($val)) > 4096) {
             //violation of the protocol
@@ -763,6 +844,7 @@ class Flyspray
      */
     public static function startSession()
     {
+    	global $conf;
         if (defined('IN_FEED') || php_sapi_name() === 'cli') {
             return;
         }
@@ -807,7 +889,7 @@ class Flyspray
 
         $url = parse_url($GLOBALS['baseurl']);
         session_name('flyspray');
-        session_set_cookie_params(0,$url['path'],'','', TRUE);
+        session_set_cookie_params(0,$url['path'],'', (isset($conf['general']['securecookies'])? $conf['general']['securecookies']:false), TRUE);
         session_start();
         if(!isset($_SESSION['csrftoken'])){
                 $_SESSION['csrftoken']=rand(); # lets start with one anti csrf token secret for the session and see if it's simplicity is good enough (I hope together with enforced Content Security Policies)
@@ -861,6 +943,27 @@ class Flyspray
 
         return $changes;
     } // }}}
+
+	// {{{
+        /**
+        * Get all tags of a task
+        * @access public static
+        * @return array
+        * @version 1.0
+        */
+        public static function getTags($task_id)
+        {
+                global $db;
+                # pre FS1.0beta
+                #$sql = $db->Query('SELECT * FROM {tags} WHERE task_id = ?', array($task_id));
+                # since FS1.0beta
+                $sql = $db->Query('SELECT tg.tag_id, tg.tag_name AS tag, tg.class FROM {task_tag} tt
+                        JOIN {list_tag} tg ON tg.tag_id=tt.tag_id 
+                        WHERE task_id = ?
+                        ORDER BY list_position', array($task_id));
+                return $db->FetchAllArray($sql);
+	} /// }}}
+
     // {{{
     /**
      * Get a list of assignees for a task
@@ -929,6 +1032,8 @@ class Flyspray
     /**
      * Returns the key number of an array which contains an array like array($key => $value)
      * For use with SQL result arrays
+     * returns 0 for first index, so take care if you want check when useing to check if a value exists, use ===
+     *
      * @param string $key
      * @param string $value
      * @param array $array
@@ -943,6 +1048,7 @@ class Flyspray
                 return $num;
             }
         }
+	return false;
     }
 
     /**
@@ -1159,7 +1265,7 @@ class Flyspray
 
         if ($conn = @fsockopen($connect, $port, $errno, $errstr, 10)) {
             $out =  "GET {$url['path']} HTTP/1.0\r\n";
-            $out .= "Host: {$url['host']}\r\n\r\n";
+            $out .= "Host: {$url['host']}\r\n";
             $out .= "Connection: Close\r\n\r\n";
 
             stream_set_timeout($conn, 5);
@@ -1211,22 +1317,6 @@ class Flyspray
         }
 
         return $return;
-    }
-
-    /**
-     * getSvnRev
-     *  For internal use
-     * @access public
-     * @return string
-     */
-    public static function getSvnRev()
-    {
-        if(is_file(BASEDIR. '/REVISION') && is_dir(BASEDIR . '/.svn')) {
-
-            return sprintf('r%d',file_get_contents(BASEDIR .'/REVISION'));
-        }
-
-        return '';
     }
 
     public static function weedOutTasks($user, $tasks) {

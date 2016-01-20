@@ -1,5 +1,43 @@
 <?xml version="1.0"?>
 <schema version="0.3">
+  <table name="cache">
+    <field name="id" type="I" size="6">
+      <KEY/>
+      <AUTOINCREMENT/>
+    </field>
+    <field name="type" type="C" size="4">
+      <NOTNULL/>
+    </field>
+    <field name="content" type="XL">
+      <NOTNULL/>
+    </field>
+    <field name="topic" type="I" size="11">
+      <NOTNULL/>
+    </field>
+    <field name="last_updated" type="I" size="11">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="project_id" type="I" size="11">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="max_items" type="I" size="11">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <index name="cache_type">
+      <UNIQUE/>
+      <col>type</col>
+      <col>topic</col>
+      <col>project_id</col>
+      <col>max_items</col>
+    </index>
+    <index name="cache_type_topic">
+      <col>type</col>
+      <col>topic</col>
+    </index>
+  </table>
   <table name="users">
     <field name="user_id" type="I" size="3">
       <KEY/>
@@ -8,7 +46,7 @@
     <field name="user_name" type="C" size="32">
       <NOTNULL/>
     </field>
-    <field name="user_pass" type="C" size="40"/>
+    <field name="user_pass" type="C" size="60"/>
     <field name="real_name" type="C" size="100">
       <NOTNULL/>
     </field>
@@ -263,11 +301,11 @@
     </field>
     <field name="view_own_tasks" type="I" size="1">
       <NOTNULL/>
-      <DEFAULT value="1"/>
+      <DEFAULT value="0"/>
     </field>
     <field name="view_groups_tasks" type="I" size="1">
       <NOTNULL/>
-      <DEFAULT value="1"/>
+      <DEFAULT value="0"/>
     </field>
     <index name="group_name">
       <UNIQUE/>
@@ -310,6 +348,10 @@
       <DEFAULT value=""/>
     </field>
     <field name="others_view" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="others_viewroadmap" type="I" size="1">
       <NOTNULL/>
       <DEFAULT value="0"/>
     </field>
@@ -393,13 +435,19 @@
       <NOTNULL/>
       <DEFAULT value="0"/>
     </field>
-    <field name="default_order_by" type="C" size="30">
+    <field name="default_order_by" type="C" size="100">
       <NOTNULL/>
       <DEFAULT value="id"/>
     </field>
     <field name="default_order_by_dir" type="C" size="5">
       <NOTNULL/>
       <DEFAULT value="desc"/>
+    </field>
+    <field name="custom_style" type="C" size="32">
+    </field>
+    <field name="freetagging" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
     </field>
   </table>
   <table name="tasks">
@@ -579,6 +627,40 @@
           <field name="task_id" type="I" size="5"></field>
 	  <field name="tag" type="C" size="100"></field>
   </table>
+  <table name="list_category">
+    <field name="category_id" type="I" size="3">
+      <KEY/>
+      <AUTOINCREMENT/>
+    </field>
+    <field name="project_id" type="I" size="3">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="category_name" type="C" size="40">
+      <NOTNULL/>
+    </field>
+    <field name="show_in_list" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="category_owner" type="I" size="3">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="lft" type="I" size="10">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+      <UNSIGNED/>
+    </field>
+    <field name="rgt" type="I" size="10">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+      <UNSIGNED/>
+    </field>
+    <index name="project_id_cat">
+      <col>project_id</col>
+    </index>
+  </table>
   <table name="list_os">
     <field name="os_id" type="I" size="3">
       <KEY/>
@@ -610,7 +692,7 @@
       <KEY/>
       <AUTOINCREMENT/>
     </field>
-    <field name="resolution_name" type="C" size="30">
+    <field name="resolution_name" type="C" size="40">
       <NOTNULL/>
     </field>
     <field name="list_position" type="I" size="3">
@@ -655,6 +737,33 @@
       <UNIQUE/>
       <col>project_id</col>
       <col>status_name</col>
+    </index>
+  </table>
+  <table name="list_tag">
+    <field name="tag_id" type="I" size="5">
+      <KEY/>
+      <AUTOINCREMENT/>
+    </field>
+    <field name="project_id" type="I" size="5">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="tag_name" type="C" size="40">
+      <NOTNULL/>
+    </field>
+    <field name="list_position" type="I" size="3">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="show_in_list" type="I" size="1">
+      <NOTNULL/>
+      <DEFAULT value="0"/>
+    </field>
+    <field name="class" type="C" size="100"/>
+    <index name="project_id_tag">
+      <UNIQUE/>
+      <col>project_id</col>
+      <col>tag_name</col>
     </index>
   </table>
   <table name="list_tasktype">
@@ -717,4 +826,22 @@
       <col>version_tense</col>
     </index>
   </table>
+  <table name="task_tag">
+    <field name="task_id" type="I" size="5">
+      <KEY/>
+    </field>
+    <field name="tag_id" type="I" size="5">
+      <KEY/>
+    </field>
+    <index name="task_id_tag">
+      <UNIQUE/>
+      <col>task_id</col>
+      <col>tag_id</col>
+    </index>
+  </table>
+  <sql>
+    <query>UPDATE projects SET visible_fields = 'tasktype category severity priority status private assignedto reportedin dueversion duedate progress os votes' WHERE visible_fields = ''</query>
+    <query>UPDATE projects SET theme_style = 'CleanFS'</query>
+    <query>UPDATE prefs SET pref_value = 'CleanFS' WHERE pref_name = 'global_theme'</query>
+  </sql>
 </schema>

@@ -6,22 +6,25 @@
 ?>
   <script type="text/javascript">
 	function checkContent()
-	{//I'm thinking about changing javascript to jquery
+	{
+		// thinking about changing javascript to jquery
 		var instance;
-		for(instance in CKEDITOR.instances)
+		for(instance in CKEDITOR.instances){
 			CKEDITOR.instances[instance].updateElement();
+		}
 		var summary = document.getElementById("itemsummary").value;
-		if(summary.trim().length == 0)
+		if(summary.trim().length == 0){
 			return true;
+		}
 		var detail = document.getElementById("details").value;
+    		var project_id = document.getElementsByName('project_id')[0].value;
+
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open("POST", "<?php echo Filters::noXSS($baseurl); ?>js/callbacks/searchtask.php", false);
 		xmlHttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		xmlHttp.send("summary=" + summary + "&detail=" + detail);
-		if(xmlHttp.status === 200)
-		{
-			if(xmlHttp.responseText > 0)
-			{
+		xmlHttp.send("summary=" + summary + "&detail=" + detail +"&project_id=" + project_id);
+		if(xmlHttp.status === 200) {
+			if(xmlHttp.responseText > 0) {
 				var res = confirm("There is already a similar task, do you still want to create?");
 				return res;
 			}
@@ -30,22 +33,16 @@
 		return false;
 	}
   </script>
-<!-- <form enctype="multipart/form-data" action="<?php echo Filters::noXSS(CreateUrl('newtask', $proj->id, $supertask_id)); ?>" method="post" onsubmit="return checkContent()"> -->
 <?php echo tpl_form(Filters::noXSS(CreateUrl('newtask', $proj->id, $supertask_id)), 'newtask', 'post', 'multipart/form-data', 'onsubmit="return checkContent()"'); ?>
   <input type="hidden" name="supertask_id" value="<?php echo Filters::noXSS($supertask_id); ?>" />
-  <div id="actionbar">
-
-    <button class="button positive main" accesskey="s" type="submit"><?php echo Filters::noXSS(L('addthistask')); ?></button>
-    <div class="clear"></div>
-  </div>
-
-  <!-- Grab fields wanted for this project so we can only show those we want -->
-  <?php $fields = explode( ' ', $proj->prefs['visible_fields'] ); ?>
-
+  <div id="actionbar"><div class="clear"></div></div>
+  <?php 
+  # Grab fields wanted for this project so we can only show those we want
+  $fields = explode( ' ', $proj->prefs['visible_fields'] );
+  ?>
   <div id="taskdetails">
       <div id="taskfields">
         <ul class="form_elements slim">
-
           <!-- Task Type -->
           <?php if (in_array('tasktype', $fields)) { ?>
             <li>
@@ -55,7 +52,6 @@
             <label for="tasktype"><?php echo Filters::noXSS(L('tasktype')); ?></label>
             <select name="task_type" id="tasktype">
               <?php echo tpl_options($proj->listTaskTypes(), Req::val('task_type')); ?>
-
             </select>
           </li>
 
@@ -68,7 +64,6 @@
             <label for="category"><?php echo Filters::noXSS(L('category')); ?></label>
             <select class="adminlist" name="product_category" id="category">
               <?php echo tpl_options($proj->listCategories(), Req::val('product_category')); ?>
-
             </select>
           </li>
 
@@ -81,7 +76,6 @@
             <label for="status"><?php echo Filters::noXSS(L('status')); ?></label>
             <select id="status" name="item_status" <?php echo tpl_disableif(!$user->perms('modify_all_tasks')); ?>>
               <?php echo tpl_options($proj->listTaskStatuses(), Req::val('item_status', ($user->perms('modify_all_tasks') ? STATUS_NEW : STATUS_UNCONFIRMED))); ?>
-
             </select>
           </li>
 
@@ -108,7 +102,6 @@
             <label for="os"><?php echo Filters::noXSS(L('operatingsystem')); ?></label>
             <select id="os" name="operating_system">
               <?php echo tpl_options($proj->listOs(), Req::val('operating_system')); ?>
-
             </select>
           </li>
 
@@ -123,7 +116,6 @@
                               getElementById('itemsummary').className = 'text severity' + this.value;"
                               id="severity" class="adminlist" name="task_severity">
               <?php echo tpl_options($fs->severities, Req::val('task_severity', 2)); ?>
-
             </select>
           </li>
 
@@ -136,7 +128,6 @@
             <label for="priority"><?php echo Filters::noXSS(L('priority')); ?></label>
             <select id="priority" name="task_priority" <?php echo tpl_disableif(!$user->perms('modify_all_tasks')); ?>>
               <?php echo tpl_options($fs->priorities, Req::val('task_priority', 4)); ?>
-
             </select>
           </li>
 
@@ -149,7 +140,6 @@
             <label for="reportedver"><?php echo Filters::noXSS(L('reportedversion')); ?></label>
             <select class="adminlist" name="product_version" id="reportedver">
               <?php echo tpl_options($proj->listVersions(false, 2), Req::val('product_version')); ?>
-
             </select>
           </li>
 
@@ -163,7 +153,6 @@
             <select id="dueversion" name="closedby_version" <?php echo tpl_disableif(!$user->perms('modify_all_tasks')); ?>>
               <option value="0"><?php echo Filters::noXSS(L('undecided')); ?></option>
               <?php echo tpl_options($proj->listVersions(false, 3),$proj->prefs['default_due_version'], false); ?>
-
             </select>
           </li>
 
@@ -176,22 +165,19 @@
           <?php } ?>
             <label for="due_date"><?php echo Filters::noXSS(L('duedate')); ?></label>
             <?php echo tpl_datepicker('due_date', '', Req::val('due_date')); ?>
-
           </li>
           <?php endif; ?>
 
-            <?php if($proj->prefs['use_effort_tracking']) {
-                    if ($user->perms('view_effort')) {
-
-            ?>
-            <li style="...">
+        <?php if($proj->prefs['use_effort_tracking']) {
+        	if ($user->perms('view_effort')) {
+        ?>
+        	<li style="...">
                 <label for="estimatedeffort"><?php echo Filters::noXSS(L('estimatedeffort')); ?></label>
                 <input id="estimated_effort" name="estimated_effort" class="text" type="text" size="5" maxlength="100" value="0" />
                 <?php echo Filters::noXSS(L('hours')); ?>
-
-            </li>
-            <?php }
-            } ?>
+        	</li>
+        	<?php }
+        } ?>
 
           <?php if ($user->perms('manage_project')): ?>
           <!-- Private -->
@@ -202,7 +188,6 @@
           <?php } ?>
             <label for="private"><?php echo Filters::noXSS(L('private')); ?></label>
             <?php echo tpl_checkbox('mark_private', Req::val('mark_private', 0), 'private'); ?>
-
           </li>
           <?php endif; ?>
         </ul>
@@ -210,23 +195,19 @@
 
       <div id="taskdetailsfull">
         <!--<h3 class="taskdesc"><?php echo Filters::noXSS(L('details')); ?></h3>-->
-        <h2 class="severity<?php echo Filters::noXSS(Req::val('task_severity', 2)); ?> summary" id="edit_summary">
-          <label for="itemsummary"><?php echo Filters::noXSS(L('summary')); ?></label>
-          <input id="itemsummary" class="text severity<?php echo Filters::noXSS(Req::val('task_severity', 2)); ?>" type="text" value="<?php echo Filters::noXSS(Req::val('item_summary')); ?>"
-            name="item_summary" size="80" maxlength="100" />
-
-          <br/>
-          <label for="tags">Tags:</label>
-          <input id="tags" class="text severity<?php echo Filters::noXSS(Req::val('task_severity', 2)); ?>" type="text" value="<?php echo Filters::noXSS(Req::val('item_summary')); ?>"
-            name="tags" size="80" maxlength="100" /> <!--hyz!!!!! -->
-
-        </h2>
-
+        <label class="severity<?php echo Filters::noXSS(Req::val('task_severity', 2)); ?> summary" id="edit_summary" for="itemsummary"><?php echo Filters::noXSS(L('summary')); ?></label>
+        <input id="itemsummary" placeholder="<?php echo Filters::noXSS(L('summary')); ?>" title="<?php echo Filters::noXSS(L('tooltipshorttasktitle'));?>" type="text" value="<?php echo Filters::noXSS(Req::val('item_summary')); ?>"
+            name="item_summary" maxlength="100" />
+	<div id="edit_tags">
+        <label for="tags" title="<?php echo Filters::noXSS(L('tagsinfo'));?>"><?php echo Filters::noXSS(L('tags')); ?>:</label>
+        <input id="tags" title="<?php echo Filters::noXSS(L('tagsinfo'));?>" class="text" type="text"
+        value="<?php echo Filters::noXSS(Req::val('tags')); ?>" name="tags" maxlength="100" />
+	</div>
         <?php if (defined('FLYSPRAY_HAS_PREVIEW')): ?>
         <div class="hide preview" id="preview"></div>
+        <button tabindex="9" type="button" onclick="showPreview('details', '<?php echo Filters::noJsXSS($baseurl); ?>', 'preview')"><?php echo Filters::noXSS(L('preview')); ?></button>
         <?php endif; ?>
         <?php echo TextFormatter::textarea('detailed_desc', 15, 70, array('id' => 'details'), Req::val('detailed_desc', $proj->prefs['default_task'])); ?>
-
 
       <p class="buttons">
           <?php if ($user->isAnon()): ?>
@@ -238,11 +219,6 @@
           <?php endif; ?>
           <input type="hidden" name="action" value="newtask.newtask" />
           <input type="hidden" name="project_id" value="<?php echo Filters::noXSS($proj->id); ?>" />
-          <!--<button accesskey="s" type="submit"><?php echo Filters::noXSS(L('addthistask')); ?></button>-->
-          <?php if (defined('FLYSPRAY_HAS_PREVIEW')): ?>
-          <button tabindex="9" type="button" onclick="showPreview('details', '<?php echo Filters::noJsXSS($baseurl); ?>', 'preview')"><?php echo Filters::noXSS(L('preview')); ?></button>
-          <?php endif; ?>
-
           <?php if (!$user->isAnon()): ?>
           &nbsp;&nbsp;<input class="text" type="checkbox" id="notifyme" name="notifyme"
           value="1" checked="checked" />&nbsp;<label class="inline left" for="notifyme"><?php echo Filters::noXSS(L('notifyme')); ?></label>
@@ -289,6 +265,7 @@
 </button>
         <?php endif; ?>
 
+<button class="button positive" style="display:block;margin-top:20px" accesskey="s" type="submit"><?php echo Filters::noXSS(L('addthistask')); ?></button>
       </div>
 
     <div class="clear"></div>

@@ -1,5 +1,6 @@
 /* ------------------ IMPORTS -------------------- */
 @import url("../../js/jscalendar/calendar-system.css");
+/*@import url("./fonts/octicons/octicons.css");*/
 /*@import url("calendar.css");*/
 /* reset.css - Resets default browser CSS.
 putting it here saves one extra http request.
@@ -20,9 +21,62 @@ article, aside, details, figcaption, figure, dialog,
 footer, header, hgroup, menu, nav, section {
 display:block;
 }
+
+/* Central default color scheme for Flyspray.
+You can overwrite it by grouping the same css rules to your colors later in the file.
+Or better load an extra 'customxxx.css' file in the header.tpl after loading theme.css.
+*/
+.button,
+button,
+input[type=submit],
+input[type=text],
+input[type=password],
+fieldset,
+body.toplevel .box,
+div.box,
+p.box,
+div.roadmap,
+div.error,
+div.success,
+div.mixed,
+.descbox,
+#toolboxmenu a.active,
+#submenu a.active,
+#tasklist,
+#search,
+#search fieldset,
+#intromessage,
+#toolbox,
+#toolbox div.tab,
+#taskdetails,
+#taskdetails #showvotes,
+#comments, #related, #notify, #remind, #effort, #history,
+#events,
+div#taskclosed,
+#tasklist_table th,
+#controlBox {
+	background-color:#fff;
+}
+div.denyform,
+div.popup, div#mysearches {
+	background-color:#fafafa;
+}
+tr.active,
+body a.button.positive, body button.positive,
+#pm-menu-list a.active, #pm-menu-list a.active:hover,
+#menu-list a.active, #menu-list a.active:hover,
+#s_loginbox:checked ~ #show_loginbox,
+#s_quickactions:checked ~ #actions,
+#menu-list a#show_loginbox:hover {
+	background-color: #5f9729;
+}
+body a.button.positive, body button.positive {
+	color: #fff;
+}
+/* end default Flyspray color scheme */
+
 body {
 line-height: 1.5; /* Line-height should always be unitless! */
-background: #fff;
 /* direction:rtl; */
 }
 table {border-collapse: separate;border-spacing: 0;}
@@ -79,7 +133,7 @@ del { color:#666; }
 pre { margin: 1.5em 0; white-space: pre; }
 pre,code,tt { font: 1em 'andale mono', 'lucida console', monospace; line-height: 1.5; }
 li ul, li ol { margin: 0; }
-ul, ol { margin: 0 1.5em 1.5em 0; padding-left: 1.5em; }
+ul, ol { margin: 0 1.5em 1.5em 0; padding-left: 3em; }
 ul { list-style-type: disc; }
 ol { list-style-type: decimal; }
 dl { margin: 0 0 1.5em 0; }
@@ -92,9 +146,6 @@ of other elements.
 */
 table { margin-bottom: 1.4em; }
 th { font-weight: bold; }
-/*
-thead th { background: #c3d9ff; }
-*/
 th,td,caption { padding: 4px 10px 4px 5px; }
 tfoot { font-style: italic; }
 /*
@@ -142,7 +193,6 @@ img:-moz-broken {
 }
 div.popup {
   position: absolute;
-  background: #fafafa;
   border: #e1e1e1 1px solid;
   margin-top: 5px;
   padding: 5px;
@@ -163,7 +213,6 @@ a:hover {color: #6699cc;}
   display: block;
   margin: 0px 20px 20px 20px;
   padding-top: 10px;
-  border-top: #e1e1e1 solid 1px;
   text-align: right;
 }
 #title {
@@ -178,30 +227,32 @@ a:hover {color: #6699cc;}
 }
 #title a {color: white; text-decoration: none; display: block; padding: 25px 50px; }
 #title img { float: left; margin-right: 20px; height: 36px;}
+#labelpmmenu,#labelmenu1{display:none; cursor:pointer;}
+#pmmenu,#menu1{display:none;}
 #menu {position: absolute; top:5px; right:5px;}
 #menu-list {display: inline;margin: 0;padding: 0;list-style: none; }
 #menu-list a, #menu-list label{color: #ddd;text-decoration: none;padding: 3px 7px; }
 #menu-list a:hover {
-  background: #494d4e;
-  border-radius: 10px;
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+  background: #000;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
 }
 #s_loginbox, #s_quickactions { display: none;}
 #loginbox, #actionsform { display: none;}
 #s_loginbox:checked ~ #loginbox, #s_quickactions:checked ~ #actionsform { display: block; }
 tr.active, #menu-list a.active, #s_loginbox:checked ~ #show_loginbox, #s_quickactions:checked ~ #actions {
-  /*background: $inverse_link;      */
+  /*background: $inverse_link; */
   color: #fff;
-  background: #5f9729;
-  border-radius: 10px;
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
 }
+#s_loginbox:checked ~ #show_loginbox{border-radius: 3px 3px 0 0;}
 #menu-list a#lastsearchlink.active {
-      -moz-border-radius: 10px 10px 0px 0px;
-      -webkit-border-radius: 10px 10px 0px 0px;
-      border-radius: 10px 10px 0px 0px;
+      -moz-border-radius: 3px 3px 0px 0px;
+      -webkit-border-radius: 3px 3px 0px 0px;
+      border-radius: 3px 3px 0px 0px;
 }
 #menu-list li {
       display: block;
@@ -210,24 +261,24 @@ tr.active, #menu-list a.active, #s_loginbox:checked ~ #show_loginbox, #s_quickac
       height: 1.4em;
       border-left: dotted 1px #888888;
 }
-#menu-list li.first {border: none; }
+#menu-list li:first-child {border: none; }
 #menu-list #locked { margin-left: 7px; color: red; }
 div#mysearches {
   border-radius: 4px;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
-  background: #dddddd;
   border: solid 3px #5f9729;
-  width: 218px;
   overflow: auto;
+  min-width:240px;
   max-height: 25em;
   display: none;
   position: absolute;
-  left: 0;
+  right: 0;
   top: 1.4em;
   margin-top: 1px;
   z-index: 5;
   padding: 2px 5px 3px;
+  box-sizing:border-box;
 }
 div#mysearches table#mysearchestable {border-collapse: collapse;width: 100%;margin-bottom: 0;}
 div#mysearches table#mysearchestable a {color: #3c4041;font-weight: normal;}
@@ -238,10 +289,14 @@ div#mysearches table tr {border-bottom: dotted 1px gray;text-align: left;padding
 div#mysearches table tr.last {border: 0;}
 div#mysearches td {vertical-align: middle;}
 #pmcontrol div {
+  vertical-align:middle;
   display: -moz-inline-stack; /* optional */
   display: inline-block;
   zoom: 1; /* triggers hasLayout for IE */
   *display: inline; /* target IE7 only */
+}
+#pmcontrol input[type="text"]{
+	height:auto;
 }
 #showtask #taskid {width: 50px;}
 #projectselector { /*margin-top: 3px;*/ margin-right: 10px; }
@@ -249,22 +304,19 @@ div#mysearches td {vertical-align: middle;}
 #projectselector option[selected] { font-weight: bold;}
 #pm-menu{background-color:#222;	border-bottom: solid 4px #5f9729;padding: 0px 0px 0px 10px; /*text-align:center;*/ }
 #pm-menu-list {list-style: none;display: inline-block;margin:0;}
-#pmcontrol{display: inline-block;float: right;margin: 4px 20px 0px 0px;}
+#pmcontrol{display: inline-block;float: right;margin: 6px 20px 0px 0px;}
 #pm-menu-list li {display: inline-block;}
-#pm-menu-list li a {display: block; line-height: 1.4em; padding: 11px 11px 8px 35px; margin-right: 2px;color: #f9f9f9;
+#pm-menu-list li a {display: block; line-height: 1.4em; padding: 11px 11px 8px 35px; color: #f9f9f9;
         text-decoration: none; border-left: dotted 1px #3c4041; border-top-left-radius: 3px; border-top-right-radius: 3px;
         background-repeat: no-repeat; background-position: 12px 50%;
 }
-#pm-menu-list li a:hover { background-color: #3c4041; border-left: 1px solid #3c4041;}
-#pm-menu-list li a.active {
-        /*color: darken($top2, 10%);*/
-        background-color: #5f9729;
+#pm-menu-list a:hover { background-color: #000; border-left: 1px solid #000;}
+#pm-menu-list a.active {
         border-left: none;
-        border-bottom: 3px solid #5f9729;
         border-top: 1px solid #6cab2e;
         border-right: 1px solid #6cab2e;
 }
-#pm-menu-list li.first a {border-left: none;}
+#pm-menu-list li:first-child a {border-left: none;}
 #toplevellink {background-image: url("img/gray/folder_stroke_12x12.png");}
 #homelink {background-image: url("img/gray/list_12x11.png");}
 #newtasklink {background-image: url("img/gray/document_alt_stroke_9x12.png"); }
@@ -282,27 +334,25 @@ div#mysearches td {vertical-align: middle;}
 .active#projectslink {background-image: url("img/white/cog_alt_12x12.png");}
 /* --- buttons --- */
 #actionbar { /*height: 4em;*/ position: relative;}
-#actionbar a.button { margin-bottom: 0;}
-#actionbar button.button { margin-bottom: 0;}
+#actionbar a.button, #actionbar button.button { margin-bottom: 0;}
 #actionbar .main {float: right;}
-.button {
+.button, button, input[type=submit] {
   display: -moz-inline-stack; /* optional */
   display: inline-block;
   zoom: 1; /* triggers hasLayout for IE */
   *display: inline; /* target IE7 only */
   margin: 0.3em 0.3em 0.3em 0;
-  padding: 8px 13px 8px 10px;
+  padding: 4px;
   /* Links */
-  border: 1px solid #bbbbbb;
+  border: 1px solid #bbb;
   border-radius: 4px;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
-  -moz-box-shadow: 0px 1px 1px #dddddd;
-  -webkit-box-shadow: 0px 1px 1px #dddddd;
-  box-shadow: 0px 1px 1px #dddddd;
+  -moz-box-shadow: 0px 1px 1px #ddd;
+  -webkit-box-shadow: 0px 1px 1px #ddd;
+  box-shadow: 0px 1px 1px #ddd;
   -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=90, Color='$color')";
   filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=90, Color='$color');
-  background-color: white;
   font-family: "Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
   font-size: 100%;
   line-height: 130%;
@@ -319,13 +369,10 @@ a.button img, button.button img {
   height: 16px;
   float: none;
 }
-a.button:hover, button.button:hover {background-color: #f2f2f2;border: 1px solid #a1a1a1;}
+a.button:hover, button:hover, .button:hover, input[type=submit] {background-color: #f2f2f2;border: 1px solid #a1a1a1;}
 a.button.disabled{background-color: #f2f2f2; border: 1px solid #a1a1a1;color: #9e9e9e;}
 a.button:active, button.button:active {background-color: #6299c5;border: 1px solid #6299c5;color: #fff;}
-body .positive {
-  /*color: white;*/
-  /*background: lighten(#5F9729, 10%);*/
-  background-color: #d2ecb9;
+body a.positive, body button.positive {
   border: solid 1px #5a8f27;
   border-top: solid 1px #85cb41;
   border-right: solid 1px #85cb41;
@@ -333,19 +380,21 @@ body .positive {
 a.positive:hover, button.positive:hover {
   background-color: #78bf34;
   border: solid 1px #5f9729;
-  color: #529214;
-  color: white;
 }
 a.positive:active, button.positive:active {
   background-color: #529214;
   border: 1px solid #529214;
-  color: #fff;
 }
 .button.img.delete {
 	background-image: url('./img/red/x_alt_24x24.png');
 	background-size: contain;
 	background-repeat: no-repeat;
+	background-color:transparent;
+	box-shadow:none;
+	border:none;
 }
+#table tr:first-child td:first-child button.img.delete {display: none;}
+
 body .negative {color: #d12f19;}
 a.negative:hover {background-color: #fbe3e4;border: 1px solid #fbc2c4;color: #d12f19;}
 a.negative:active {background-color: #d12f19;border: 1px solid #d12f19;color: #fff;}
@@ -353,36 +402,32 @@ a.negative:active {background-color: #d12f19;border: 1px solid #d12f19;color: #f
 #tasklist {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
 #tasklist_table {width: 100%;}
+span.pagenums:before{ content:"--";padding-left:10px;padding-right:10px;}
 #search {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
 #search fieldset {
     margin: 10px 0px 10px 0px;
     padding: 10px;
-    background: white;
     border: solid 1px #e1e1e1;
     border-radius: 3px;
 }
 #intromessage {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
 body.toplevel .box {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
   margin: 10px 0 0 10px;
@@ -397,6 +442,7 @@ body.toplevel .single-project {
   display: block;
   height: auto;
 }
+body.myprofile .box {display:inline-block;vertical-align:top;}
 .progress_bar_container {
   width: 150px;
   margin: 0 5px;
@@ -437,49 +483,33 @@ body.toplevel .single-project {
     line-height: 1em;
     text-shadow: 0 0 6px white;
 }
-td.task_progress .progress_bar_container { width: 100%;}
-a { text-decoration: none;}
-#tasklist_table th { /*padding: 0 4px;*/ background: #3c4041; background: white;}
+td.task_progress .progress_bar_container {width: 100%;}
+a {text-decoration: none;}
 #tasklist_table th img {position: relative;top: 2px;}
-#tasklist_table td {cursor: pointer;}
 #tasklist_table tr.current_row td.caret {background-image: url(img/caret.gif);background-repeat:no-repeat;background-position: 3px;}
 #tasklist_table td.caret {width: 15px;padding: 0 !important;}
 #tasklist_table .ttcolumn {width: 10px;text-align: center;}
 #tasklist_table .ttcolumn input {margin: 0;}
-#tasklist_table .ttcolumn a {
+#tasklist_table .ttcolumn a, a.toggle_selected {
   background-image: url(img/black/loop_alt3_12x9.png);
   background-repeat: no-repeat;
   background-position: center;
-  width: 30px;
-  height: 30px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
-#tasklist_table thead th {
-  border-bottom: solid 1px #a1a6a8;
-  border-top: solid 1px #a1a6a8;
-}
-a.toggle_selected {
-  background-image: url(img/black/loop_alt3_12x9.png);
-  background-repeat: no-repeat;
-  background-position: center;
-  width: 30px;
-  height: 30px;
-  display: block;
-}
-tr.severity1 .task_severity {background-color: white;}
-tr.severity2 .task_severity {background-color: white;}
+#tasklist_table tbody tr td {border-top:1px solid transparent;border-bottom:1px solid transparent;}
+#tasklist_table tbody tr:hover td {border-color:#ddd;}
+#tasklist_table tr.closed, #myvotes tr.closed {background-color:#ddd;}
+tr.severity1 .task_severity {background-color: #fff;}
+tr.severity2 .task_severity {background-color: #fff;}
 tr.severity3 .task_severity {background-color: #f5e7e7;}
 tr.severity4 .task_severity {background-color: #f5dddd;}
 tr.severity5 .task_severity {background-color: #f5d1d1;}
-tr.severity1:hover td {background-color: #f2f2f2 !important;}
-tr.severity2:hover td {background-color: #f2f2f2 !important;}
-tr.severity3:hover td {background-color: #eed4d4 !important;}
-tr.severity4:hover td {background-color: #efc9c9 !important;}
-tr.severity5:hover td {background-color: #f0bcbc !important;}
-div#toolbox {
+
+#toolbox {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
   margin-left: 120px;
@@ -487,20 +517,19 @@ div#toolbox {
   height: 1%; /* Fix for IE bug */
   padding: 20px;
 }
-div#toolbox div.tab {
+#toolbox div.tab {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
-div#toolbox h3 {
+#toolbox h3 {
   margin-bottom: 1em;
   padding-bottom: 5px;
   border-bottom: 1px solid #ddd;
 }
-div#toolboxmenu {position: relative;float: left;padding-top: 10px;}
-div#toolboxmenu a {
+#toolboxmenu {position: relative;float: left;padding-top: 10px;}
+#toolboxmenu a {
   display: block;
   border: 1px solid #d4d4d4;
   /*border-right: none; */
@@ -517,13 +546,12 @@ div#toolboxmenu a {
   -moz-border-bottom-left-radius: 5px;
   -webkit-border-bottom-left-radius: 5px;
 }
-div#toolboxmenu a:hover {background-color: #d6d8d9; /*color: $inverse_link;*/ }
-div#toolboxmenu a.active {
+#toolboxmenu a:hover {background-color: #d6d8d9; /*color: $inverse_link;*/ }
+#toolboxmenu a.active {
   margin-left: 0;
   font-weight: bold;
   width: 100px;
   padding: 1em 10px;
-  background-color: white;
   color: #3c4041;
   border: 1px solid #e1e1e1;
   border-right: none;
@@ -533,7 +561,6 @@ div#toolboxmenu a.active {
 #controlBox {
   border: 1px solid gray;
   padding: 1px;
-  background: #fff;
   width: auto !important;
   width: 90px;
   margin-left: 40px;
@@ -552,88 +579,108 @@ div#toolboxmenu a.active {
 }
 #controlBox.active div.inner {opacity: 1;}
 div#fineprint {
-  /*border-top: 1px solid $box_border;*/
   font-size: smaller;
   margin: 5px 0;
-  padding: 10px 5px 10px 20px;
+  padding: 0;
   color: #555;
 }
-form #taskdetails #taskfields { width: 335px;}
-form #taskdetails #taskdetailsfull {
+#dokuwiki_toolbar {display:inline;vertical-align:bottom;}
+form #taskfields { width: 335px;}
+form #taskdetailsfull {
   position: relative;
   top: -20px;
   margin-left: 355px;
 }
 #taskdetails {
   margin: 10px 0px 10px 0px;
-  padding: 10px;
-  background: white;
+  padding: 0px;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
-#taskdetails #navigation {float: right;}
-#taskdetails h2 {color: #555;}
-#taskdetails #taskfields {
+#taskdetails #navigation {float: right;padding:6px;}
+#taskdetails h2 {color: #555;display:inline-block;}
+
+.group.inactive{ background-color:#eee;}
+.tag {
+    background: #ccc none repeat scroll 0 0;
+    border-radius: 3px;
+    margin-left: 3px;
+    padding: 3px;
+    font-style:normal;
+    white-space: nowrap;
+    vertical-align:middle;
+}
+.tag:before {font-family:fontawesome;padding-right:3px;}
+.tag:after {content:attr(title);}
+/* style your tags by their tag_id, may be managed by tag list management in admin/project settings */
+/*
+.tag.t1{background-color:#666;}
+.tag.t1:before{content:'\f153';color:#cc0;}
+.tag.t2{background-color:#0c0;}
+.tag.t3{background-color:#09c;}
+*/
+#taskfields {
   width: 290px;
   float: left;
   border-right: 1px solid #eee;
   padding-top: 5px;
   background: #f9f9f9;
-  margin: -10px;
+  margin: 0;
 }
-#taskdetails #taskfields ul.fieldslist {
-  margin-bottom: 35px;
+#taskfields ul.fieldslist {
+  margin-bottom: 5px;
   list-style: none;
-  margin-right: 1ex;
-  padding-left: 1ex;
+  margin-right: 0;
+  padding-left: 0;
 }
-#taskdetails #taskfields ul.fieldslist li {
+#taskfields ul.fieldslist li {
   clear: both;
-  margin-top: 2%;
-  padding-top: 1%;
-  padding-bottom: 1%;
+  padding-top: 2px;
+  padding-bottom: 2px;
   overflow: auto;
   width: 100%;
   border-radius: 4px;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
 }
-#taskdetails #taskfields ul.fieldslist li .label {
+#taskfields ul.fieldslist li .label {
   display: block;
   float: left;
   width: 45%;
   text-align: right;
   color: #888;
 }
-#taskdetails #taskfields ul.fieldslist li .value {display: block;float: right;width: 50%;}
-#taskdetails #taskfields ul.fieldslist > li:nth-child(2n-1) {background-color: #f1f1f1;}
+#taskfields ul.fieldslist li .value {display:block;float:right;width:50%;}
+#taskfields ul.fieldslist > li:nth-child(2n-1) {background-color: #f1f1f1;}
 #taskdetails #showvotes {
   position: absolute;
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
+  z-index:100;
 }
-#taskdetailsfull {margin-left: 300px;padding: 2em 3em;}
+.fieldslist .reopened{display:inline-block;font-size:10px;line-height:10px;vertical-align:middle;width:60px;}
+#taskdetailsfull {margin-left: 291px;padding: 2em 3em;}
+#itemsummary, #tags {width:100%;box-sizing:border-box;height:auto;margin-bottom:10px;margin-top:8px;}
+.descbox table, #taskdetailstext table{border-collapse:collapse; border:1px solid #999;}
+.descbox td, .descbox th, #taskdetailstext td, #taskdetailstext th{border:1px solid #999;}
 #taskinfo {
-  margin-left: 300px;
+  margin-left: 291px;
   margin-top: 15px;
   border-top: 1px solid #e1e1e1;
   padding: 8px 5px;
 }
-#comments, #related, #notify, #remind, #history {
+#comments, #related, #notify, #remind, #effort, #history {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
 #comments h4 {margin:1em 0 0.5em 0;}
 .userlist th {background-color: #e0e0e0;}
-.userlist tr:nth-child(2n-1) td {background-color: #f1f1f1;}
-#related .related {float: left;margin-right: 0;}
-#duplicate_tasks th{height: 30px;}
+.userlist tbody tr:nth-child(2n) td {background-color: #f1f1f1;}
+#related .related {display:inline-block;vertical-align:top;margin-right: 0;}
 #submenu {margin-bottom: 0;height: 25px;}
 #submenu a {
   border: 1px solid #d4d4d4;
@@ -660,32 +707,113 @@ form #taskdetails #taskdetailsfull {
   border-right: bottom;
   /*border-top: 1px solid lighten($top1, 30%);*/
   border-top: 2px solid #78bf34;
-  background-color: white;
   z-index: 5;
 }
 #submenu li {display: inline;}
 div.tab {margin: 10px 1ex 10px 0;padding: 1ex 1ex 0;}
 * html .tab div.clear {clear: none;height: 14em;}
-div.comment_container {
-  padding-bottom: 5px;
-  margin-bottom: 5px;
-  border-bottom: 1px solid #e1e1e1;
+div.comment_container {margin: 5px;}
+div.comment_container .comment_avatar {	min-width: 50px;display: inline-block;}
+div.comment_container .comment {
+	position: relative;
+	display: inline-block;
+	margin-left: 10px;
+	border: 1px solid #e1e1e1;
+	vertical-align: top;
+	width: 700px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
 }
-div.comment_container .commenttext p{margin: .5em 0 .5em 0;padding: 0;}
-div.comment_container .comment {margin-left: 235px;}
+div.comment_container .comment:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	left: -16px;
+	top: 3px;
+	border: 8px solid;
+	border-color: transparent #e1e1e1 transparent transparent;
+}
+div.comment_container .comment:after {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	left: -12px;
+	top: 5px;
+	border: 6px solid;
+	border-color: transparent #f1f1f1 transparent transparent;
+}
+div.comment_container .comment_header {
+	min-height: 30px;
+	background-color: #f1f1f1;
+	line-height: 30px;
+	vertical-align: middle;
+	padding-left: 10px;
+	border-bottom: 1px solid #e1e1e1;
+}
+div.comment_container .comment_header_infos {max-width: 60%;}
+div.comment_container .comment_header_actions {float: right;margin-right: 10px;}
+div.comment_container .comment_header_usertype {
+	border: 1px solid #e1e1e1;
+	padding: 3px;
+	margin-right: 10px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+}
+div.comment_container .commenttext {clear: both;padding: 10px;}
+.commenttext pre {overflow:auto;}
 div.comment_container .attachments {
-  margin: 10px 0px 10px 0px;
-  padding: 10px;
-  background: white;
-  border: solid 1px #e1e1e1;
-  border-radius: 3px;
-  width: 350px;
-  background-color: #fefefe;
-  background-image: url(img/gray/pin_24x24.png);
-  background-repeat: no-repeat;
-  background-position: 340px 5px;
+	display: inline-block;
+	width: 45%;
+	margin-top: 10px;
+	padding: 10px;
+	border: solid 1px #e1e1e1;
+	border-radius: 3px;
+	width: 300px;
+	background-color: #ffc;
+	/*
+	background-image: url(img/gray/pin_24x24.png);
+	background-repeat: no-repeat;
+	background-position: 270px 5px;
+	*/
+	vertical-align: top;
 }
-div.comment_container .attachments img {position: relative;top: 4px;}
+div.attachments::after {
+    color: #999;
+    content: "\f0c6"; /*fa-paperclip*/
+    float: right;
+    font-family: FontAwesome;
+    font-size: large;
+}
+div.comment_container .links {
+	display: inline-block;
+	width: 45%;
+	margin-right: 3%;
+	margin-top: 10px;
+	padding: 10px;
+	border: solid 1px #e1e1e1;
+	border-radius: 3px;
+	width: 300px;
+	background-color: #fefefe;
+	vertical-align: top;
+}
+div.comment_container .attachments img {
+	position: relative;
+	top: 4px;
+}
+div.comment_container #addlinkbox, #taskdetailsfull #addlinkbox {
+	display: inline-block;
+	width: 50%;
+	vertical-align: top;
+}
+div.comment_container #uploadfilebox, #taskdetailsfull #uploadfilebox {
+	display: inline-block;
+	width: 49%;
+	vertical-align: top;
+}
 div.comment_container .commentlink {
   background-image: url(img/gray/comment_stroke_16x14.png);
   background-repeat: no-repeat;
@@ -700,38 +828,34 @@ textarea {width: 99%;}
 #events {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
-.eventlist {height: 150px;}
+.eventlist.hasresult {height: 150px;}
 table th {vertical-align: middle;}
 table td {vertical-align: top;}
 div.box, p.box {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
 div.roadmap {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
 div.error, div.success, div.mixed {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
   z-index: 50;
-  margin: 20px 20px 0 20px;
+  margin: 30px 20px 0 20px;
   color: white;
   position: absolute;
-  top: -10px;
+  top: 0;
   width: 30%;
   left: 35%;
 }
@@ -749,14 +873,13 @@ div.success {
   color: #24380d;
 }
 a#show_loginbox {margin-right: 5px;}
-#menu a#show_loginbox.active {border-radius: 10px 10px 0 0;}
 #loginbox {
-  border-radius: 4px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
+  border-radius: 3px 0 3px 3px;
+  -moz-border-radius: 3px 0 3px 3px;
+  -webkit-border-radius: 3px 0 3px 3px;
   background: #ddd;
   border: solid 3px #5f9729;
-  right: 5px;
+  right: 2px;
   z-index: 200;
   min-width: 240px;
   padding-top: 15px;
@@ -766,7 +889,6 @@ a#show_loginbox {margin-right: 5px;}
 #login_input {text-align: center;}
 #login_links {text-align: center;}
 #login_oauth {margin-top: 10px;}
-.oauth {display: inline-block;}
 #loginbox #login label {color: #222;}
 #loginbox #login a {color: #222;text-decoration: underline;}
 #loginbox #login a:hover {color: #fff;}
@@ -799,24 +921,23 @@ span#advancedsearchstate img {vertical-align: middle;}
 fieldset {
   margin: 10px 0px 10px 0px;
   padding: 10px;
-  background: white;
   border: solid 1px #e1e1e1;
   border-radius: 3px;
 }
-content > fieldset legend {
+/*
+#content > fieldset legend {
   color: #3c4041;
   background: #f9f9f9;
   padding: 2px 9px;
   border: solid 1px #e1e1e1;
-  /*border-bottom: solid 1px $box_border;*/
   border-radius: 10px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
 }
+*/
 #content > h3 {margin-top: 1em;}
 thead th {
   border-bottom: solid 1px #a1a6a8;
-  border-top: solid 1px #a1a6a8;
   background: none;
 }
 div#taskstatus {border-bottom: 1px solid #ccc;padding: 4px;margin-bottom: 5px;}
@@ -825,7 +946,6 @@ div#taskclosed {
   margin: 5px 5px 10px;
   clear: both;
   width: 20em;
-  background: white;
   border: solid 1px red;
 }
 div#taskdeps {float: left;width: 50%; margin-bottom: 8px;}
@@ -865,16 +985,9 @@ fieldset.advsearch_users input {margin-top: 1.5em;}
 .account_enabled:hover {background: #00FF00;}
 .account_disabled{background: #FFD1D1;border: 1px solid #F8ACAC;}
 .account_disabled:hover {background: #FF0000;}
-ul.form_elements {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 0 1em;
-}
-ul.form_elements li {
-  padding: 2px;
-  margin-bottom: 9px;
-}
-ul.form_elements li label {
+ul.form_elements {list-style: none;padding: 0;margin: 0 0 0 1em;}
+ul.form_elements li {padding: 2px;margin-bottom: 9px;}
+ul.form_elements label {
       width: 200px;
       display: -moz-inline-stack;
       /* optional */
@@ -882,50 +995,26 @@ ul.form_elements li label {
       zoom: 1; /* triggers hasLayout for IE */
       *display: inline; /* target IE7 only */
       vertical-align: top;
-      text-align: right;
+      text-align: end;
       padding-right: 1ex;
       padding-top: 2px;
-      color: #555555;
+      color: #555;
 }
-ul.form_elements li label.inline {
-  display: inline;
-}
-ul.form_elements li input {
-  vertical-align: middle;
-}
-ul.form_elements li textarea {
-  width: 30em;
-}
-ul.form_elements li.required label {
-  font-weight: bold;
-}
-ul.form_elements span.note {
-  margin-left: 205px;
-}
-ul.wide li label {
-  width: 250px;
-}
-ul.slim {
-  width: 390px;
-  margin: 0;
-}
-ul.slim li label {
-  width: 110px;
-}
-ul.slim li div.userSelectWidget {
-    display: -moz-inline-stack;
-    /* optional */
-    display: inline-block;
-    zoom: 1; /* triggers hasLayout for IE */
-    *display: inline; /* target IE7 only */
-    vertical-align: middle;
-}
-ul.slim li div.userSelectWidget input {
-  width: 120px;
-}
-.dateselect {
-  clear: both;
-}
+ul.form_elements label.inline {display: inline;vertical-align:middle;}
+ul.form_elements label.labeltextarea {width:auto;display:block;text-align:left;}
+ul.form_elements input {vertical-align: middle;}
+ul.form_elements input[type="text"], ul.form_elements input[type="password"] {width:300px;}
+ul.slim li {margin-bottom:0;padding-bottom:4px;}
+ul.slim input[type="text"], ul.slim input[type="password"] {width:auto;}
+ul.slim label {width:110px;}
+ul.form_elements li.required label {font-weight: bold;}
+ul.form_elements span.note {margin-left:205px;}
+ul.wide label {width:250px;}
+ul.slim {margin:0;}
+ul.slim .userSelectWidget {width:95%;margin-left:auto;margin-right:auto;}
+ul.slim .userSelectWidget input {width:100px;}
+ul.slim .userSelectWidget select {width:100%;}
+.dateselect {clear: both;}
 .dateselect label:first-child {
   width: 120px;
   text-align: right;
@@ -933,10 +1022,7 @@ ul.slim li div.userSelectWidget input {
   float: left;
 }
 /* fancy dual selects */
-.double_select {
-  padding-left: 100px;
-  position: relative;
-}
+.double_select {position: relative;}
 .double_select .dualselect_selectable {
   height: 220px;
   width: 40%;
@@ -973,8 +1059,10 @@ ul.slim li div.userSelectWidget input {
   height: 80%;
 }
 .double_select .dualselect_selected button {
-  height: 10%;
+  height: 16px;
+  line-height:0;
   width: 100%;
+  margin:0;
 }
 .double_select .c1 select {
   height: 24em;
@@ -994,6 +1082,18 @@ ul.slim li div.userSelectWidget input {
   min-width: 12em;
   width: auto;
 }
+
+/* list management */
+.list .cname {width:200px;}
+.list .cuser {width:100px;}
+.list .corder {width:50px;}
+.list .cshow {width:50px;}
+.list .ctense {width:80px;}
+.list input[id^='listname'], .list input[id^='listposition'] {width:100%;}
+#catTable .first{ white-space:nowrap;min-width:120px;}
+#idtablesys {background-color: #eee;}
+#listpositionnew {width:100%;}
+
 /* closing task form */
 div#closeform {
   border-radius: 3px;
@@ -1038,12 +1138,17 @@ div#closeform {
 	color:#fff;
 	padding: 0px;
 }
-#actionsform li a, #actionsform li label{
-    display: block;
-    text-decoration: none;
-    color: #fff;
-    white-space: nowrap;
-    padding:5px 15px;
+#actionsform li a, #actionsform li label, #actionsform li button{
+  display: block;
+  text-decoration: none;
+  color: #fff;
+  white-space: nowrap;
+  padding:5px 15px;
+  background:none;
+  margin:0;
+  border:none;
+  font-weight:normal;
+  font-size:12px;
 }
 #actionsform ul li:hover { background: #617F8A; }
 #actionsform li:hover ul {display:none;}
@@ -1052,15 +1157,17 @@ div#closeform {
     position: absolute;
 }
 #actionsform li:hover li {float: none;font-size: 11px;}
-#setparentform, #associateform,#adddepform {
+#edit_add_comment{display:none;}
+#setparentform, #associateform, #adddepform {
 	display:none;
 	background: #363a3b;
 	color:#fff;
 	padding-left: 5px;
 }
-#s_parent, #s_associate, #s_adddependent {
+#s_parent, #s_associate, #s_adddependent, #s_addcomment {
 	display:none;
 }
+#s_addcomment:checked ~ #edit_add_comment,
 #s_parent:checked ~ #setparentform,
 #s_associate:checked ~ #associateform,
 #s_adddependent:checked ~ #adddepform{
@@ -1072,7 +1179,6 @@ div#closeform {
 #taskdeps img {vertical-align:middle;margin-top:-1px;}
 input[type=text], input[type=password]{
     color: #000;
-    background: #fff;
     border: 1px solid #ccc;
     padding: 2px;
     vertical-align: middle;
@@ -1083,40 +1189,23 @@ input[type=text], input[type=password]{
 #table input[type=text] {
     width: 120px;
 }
-
-input[type=submit], button {
-    background: #69C;
-    border:  1px solid #0a4193;
-    color: #fff;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 20px;
-    vertical-align: middle;
-}
 input[type=text], input[type=submit], button {
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
 }
-button {vertical-align: middle; margin-bottom: 2px; line-height: 20px;}
-input[type=submit]:hover, button:hover {
-    background: #5F9729;
-    color: #fff;
-    border-color: #5F9729;
-}
 #show_loginbox {
-    background: #494D4E;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
+	cursor:pointer;
+	background: #494D4E;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
 }
-#menu #menu-list a#show_loginbox:hover {background-color: #5f9729;}
 #login_button {display: block;margin: 6px auto;vertical-align: baseline;}
 div.denyform {
 	visibility:hidden;
 	position:absolute;
-	background: none repeat scroll 0 0 #FAFAFA;
+	background-image: none;
 	border: 1px solid #E1E1E1;
 	margin-top:5px;
 	display:block;
@@ -1128,53 +1217,59 @@ div.denyform {
 #rassigned_to {height: 12em; }
 
 /* Stuff for the autocomplete lists {{{ */
-span.autocomplete {
-	background-color:#F5F5F5;
+.autocomplete {
+	background-color:#fff;
 	position: absolute;
 	width: auto !important;
-	border:1px solid gray;
+	box-shadow:0 5px 7px #ccc;
 	padding: 0px;
 	margin:-1px 0 0;
 	text-align:left;
 	display:block;
 }
-span.autocomplete ul {
+.autocomplete ul {
 	list-style-type: none;
 	margin: 0px;
 	padding: 0px;
 }
-span.autocomplete ul li {
+.autocomplete ul li {
 	list-style-type: none;
 	display: block;
 	margin: 0;
-	padding:2px 4px;
-	height: 1.1em;
+	padding:0;
+	height: 25px;
 	white-space:nowrap;
+	vertical-align:middle;
 }
-span.autocomplete ul li span.informal {
-	color: darkgray;
-	font-size:0.9em;
+.autocomplete ul li span.informal {
+	color: #333;
 }
-span.autocomplete ul li.selected {
+.autocomplete ul li.selected {
 	background-color: #5F9729;
 	cursor:pointer;
 	color:HighlightText;
 }
+.autocomplete img, .autocomplete .noavatar{
+	width:25px;
+	height:25px;
+	display:inline-block;
+}
+
 #actionbuttons {
 	margin-left: 300px;
 	margin-top: 15px;
 	min-height: 50px;
 	padding: 8px 5px;
 }
-.assignedto {border:0px;border-collapse: collapse;}
-.assignedto table, .assignedto td {
+table.assignedto {border:0px;border-collapse: collapse;}
+table.assignedto tr {height: 30px;}
+table.assignedto td {
 	margin:0px;
 	padding:0px;
 	padding-right: 5px;
 	vertical-align: middle;
 }
-.assignedto tr {height: 30px;}
-.assignedto img {padding-top: 2px;}
+table.assignedto img {padding-top: 2px;}
 a.tooltip {outline:none; }
 a.tooltip strong {line-height:30px;}
 a.tooltip:hover {text-decoration:none;}
@@ -1204,7 +1299,7 @@ a.tooltip span{
 	display:none;
 	border: 3px solid #e1e1e1;
 	border-radius: 3px;
-	background: none repeat scroll 0 0 white;
+	background-image: none;
     	margin: 10px 0;
     	padding: 10px;
 	height: 144px;
@@ -1228,3 +1323,93 @@ span.warning {
 .fa-check{color:#090;}
 .global.fa-check{color:#990;} /* got permission by global settings, not project settings */
 .fa-ban{color:#900;}
+
+button.fakelinkbutton {
+	display: inline-block;
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	cursor: pointer;
+	color: #369;
+	box-shadow:none;
+}
+
+button.fakelinkbutton:hover {
+	color: #69c;
+}
+
+button.fakelinkbutton:visited {
+	color: #69c;
+}
+
+@media only screen and (max-width: 480px) and (orientation: portrait) {
+
+th, td, caption {padding: 5px 2px;}
+#menu { position:static;clear:both;background-color:#111;}
+#title {font-size:1.2em;line-height:1.2em;background-color:#111;}
+#title a {padding:0;color:transparent;}
+#title img {float:none;margin:4px;}
+#menu-list {display:block;}
+#menu-list li {float:none;display:block;padding:0;height:auto;border-left:none;text-align:center;}
+#menu-list a {display:block;border:1px solid #333;height:24px;}
+#menu-list a:hover {border-radius:unset;}
+#labelpmmenu, #labelmenu1{text-align:center;color:#fff;display:block;position:absolute;top:0;width:15%;height:48px;left:20%;}
+#labelmenu1{left:35%;}
+#labelmenu1:before{content:"\f013";font-family:fontawesome;font-size:30px;} /* cog */
+#labelpmmenu:before{content:"\f0c9";font-family:fontawesome;font-size:30px;} /* bars */
+#menu1:checked ~ #menu{right:0;transition:0.5s;display:block;}
+#pmmenu:checked ~ #pm-menu-list{left:0;transition:0.5s;display:block;}
+#labelpmmenu:hover, #labelmenu1:hover, #menu1:checked ~ #labelmenu1, #pmmenu:checked ~ #labelpmmenu {background-color:rgba(0,0,0,0.3);}
+#pm-menu {padding:0;}
+#menu {z-index:111;padding:0;display:none;width:100%;position:absolute;background-color:#333;top:48px;right:-100%;transition:0.5s;}
+#pm-menu-list {z-index:110;padding:0;display:none;width:100%;position:absolute;background-color:#333;top:48px;left:-100%;transition:0.5s;}
+#pm-menu-list li {display:block;border-top:1px dotted #3c4041;}
+#pm-menu-list a {border:none;border-radius:0;margin:0;}
+#pmcontrol {margin:0;display:block;float:none;padding:10px;}
+#task_id {width:120px;}
+#projectselector {position:absolute;top:0;right:0;margin:0;text-align:center;max-width:40%;}
+#projectselector select{height:40px;padding-right:4px;max-width:100%;}
+#content {padding:0;min-width:unset;}
+#tasklist {padding:0;}
+table.toplevel th, table.toplevel td {display:block;}
+body.toplevel .box {margin:0 0 10px 0;}
+body.toplevel.p0 .box {width:auto;}
+div.box, p.box {padding:0;}
+#event1 td {display:block;}
+body.admin {background-color:#300;} /* experimental: danger zone */
+body.admin h1#title {background-color: #900;background-image: none;} /* danger zone */
+body.admin #pm-menu {background-color:#600;border-bottom-color:#300;} /* danger zone */
+body.reports .box button {display: block;margin-left:auto;margin-right:auto;width:70%;}
+#footer{border-top:none;}
+#toolboxmenu {float:none;text-align:center;}
+#toolboxmenu a {width:31%;display:inline-block;margin-left:0;border-bottom-left-radius: 0;padding:6px 2px;}
+#toolboxmenu a.active {border-top-right-radius:5px;width:31%;padding:6px 2px;float:none;border-color:#78bf34 #78bf34 transparent #78bf34;}
+#toolbox {margin:0;padding:0;border-radius:0;padding-top:10px;position:relative;}
+#controlBox {position:relative;margin-left:140px;}
+h3 {padding-left:6px;}
+p { text-align:justify;padding:2px;}
+#listTable{width:100%;}
+ul.form_elements {margin:0;}
+ul.form_elements span.note {margin-left:0;}
+ul.form_elements li label {text-align:start;}
+ul.form_elements li > input {margin-left:20px;}
+ul.form_elements li > input[type="text"],ul.form_elements li > input[type="password"] {display:block;margin-left:auto;margin-right:auto;width:90%;}
+.double_select {padding-left:0;}
+#toolbox div.tab {padding:0px;}
+#submenu {padding-left:0;margin:0;}
+#submenu ~ div {clear:both;}
+#catTable input[type="text"], #catTable input[type="password"] {width:120px;}
+#taskdetails {margin:0;padding:0;margin-top:40px;}
+#taskfields {float:none; border:none;}
+#taskdetailsfull {margin:0;padding:2px;}
+form #taskdetails {margin:0;}
+form #taskfields {width:auto; margin-top:20px; background-color:#fff;}
+form #taskdetailsfull {margin:0;top:auto;}
+form #taskdetailsfull button.positive {margin-left:auto;margin-right:auto;width:60%;}
+#comments, #related, #notify, #remind, #effort, #history{padding:0;}
+div.comment_container {margin:0;}
+div.comment_container .commenttext{padding:2px;}
+div.comment_container .comment {margin:0;width:auto;}
+}

@@ -1,12 +1,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="<?php echo Filters::noXSS(L('locale')); ?>" xml:lang="<?php echo Filters::noXSS(L('locale')); ?>">
-  <head>
-    <title><?php echo Filters::noXSS($this->_title); ?></title>
+<head>
+<title><?php echo Filters::noXSS($this->_title); ?></title>
 
     <meta name="description" content="Flyspray, a Bug Tracking System written in PHP." />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="Content-Script-Type" content="text/javascript" />
     <meta http-equiv="Content-Style-Type" content="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <?php if(trim($this->get_image('favicon'))): ?>
     <link rel="icon" type="image/png" href="<?php echo Filters::noXSS($this->get_image('favicon')); ?>" />
     <?php endif; ?>
@@ -16,7 +17,15 @@
     <?php endforeach; ?>
     <link media="screen" href="<?php echo Filters::noXSS($this->themeUrl()); ?>theme.css" rel="stylesheet" type="text/css" />
     <link media="print"  href="<?php echo Filters::noXSS($this->themeUrl()); ?>theme_print.css" rel="stylesheet" type="text/css" />
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+<?php 
+# include an optional, customized css file for tag styling (all projects, loads even for guests)
+if(is_readable(BASEDIR.'/themes/'.$this->_theme.'tags.css')): ?>
+	<link href="<?php echo Filters::noXSS($this->themeUrl()); ?>tags.css" rel="stylesheet" type="text/css" />
+<?php endif; ?>
+<?php if($proj->prefs['custom_style'] !=''): ?>
+	<link media="screen" href="<?php echo Filters::noXSS($this->themeUrl()).$proj->prefs['custom_style']; ?>" rel="stylesheet" type="text/css" />
+<?php endif; ?>
     <link rel="alternate" type="application/rss+xml" title="Flyspray RSS 1.0 Feed"
           href="<?php echo Filters::noXSS($baseurl); ?>feed.php?feed_type=rss1&amp;project=<?php echo Filters::noXSS($proj->id); ?>" />
     <link rel="alternate" type="application/rss+xml" title="Flyspray RSS 2.0 Feed"
@@ -57,7 +66,7 @@
         elseif (isset($_SESSION['SUCCESS'])):
         ?>window.setTimeout('Effect.Fade(\'successbar\', {duration:.3})', 8000);<?php
         elseif (isset($_SESSION['ERROR'])):
-        ?>window.setTimeout('Effect.Fade(\'errorbar\', {duration:.3})', 8000);<?php endif ?>" class="<?php echo isset($_GET['do']) ? Filters::noXSS($_GET['do']) : 'index'; ?>">
+        ?>window.setTimeout('Effect.Fade(\'errorbar\', {duration:.3})', 8000);<?php endif ?>" class="<?php echo (isset($do) ? Filters::noXSS($do) : 'index').' p'.$proj->id; ?>">
 
     <!-- Display title and logo if desired -->
     <h1 id="title"><a href="<?php echo Filters::noXSS($baseurl); ?>">
@@ -67,7 +76,6 @@
 	<?php echo Filters::noXSS($proj->prefs['project_title']); ?>
 
     </a></h1>
-
     <?php $this->display('links.tpl'); ?>
 
     <?php if (isset($_SESSION['SUCCESS']) && isset($_SESSION['ERROR'])): ?>

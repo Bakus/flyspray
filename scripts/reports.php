@@ -59,6 +59,7 @@ $user_events = array(30 => L('created'),
 
 $page->assign('events', $events);
 $page->assign('user_events', $user_events);
+$page->assign('theuser', $user);
 
 $sort = strtoupper(Req::enum('sort', array('desc', 'asc')));
 
@@ -84,7 +85,7 @@ foreach (Req::val('events', array()) as $eventtype) {
 $where = '(' . implode(' OR ', $where) . ')';
 
 if ($proj->id) {
-    $where = $where . 'AND (t.project_id = ?  OR h.event_type > 29) ';
+    $where = $where . 'AND (t.project_id = ?  OR h.event_type IN(30, 31)) ';
     $params[] = $proj->id;
 }
 

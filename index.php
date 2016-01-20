@@ -23,6 +23,8 @@ if ($do == 'admin' && Req::has('switch') && Req::val('project') != '0') {
 } elseif (Req::has('code')) {
 	$_SESSION['oauth_provider'] = 'microsoft';
 	$do = 'oauth';
+} elseif( Req::has('do') && Req::val('do') == 'tasklist') {
+	$do='index';
 }
 
 // supertask_id for add new sub-task
@@ -85,11 +87,7 @@ load_translations();
 /*******************************************************************************/
 /* Here begins the deep flyspray : html rendering                              */
 /*******************************************************************************/
-
-// make browsers back button work
-header('Expires: -1');
-header('Pragma: no-cache');
-header('Cache-Control: no-cache, must-revalidate, post-check=0, pre-check=0');
+# no cache headers are now in header.php!
 
 // see http://www.w3.org/TR/html401/present/styles.html#h-14.2.1
 header('Content-Style-Type: text/css');
@@ -144,7 +142,7 @@ if (Req::has('action')) {
 if ($proj->id && $user->perms('manage_project')) {
     // Find out if there are any PM requests wanting attention
     $sql = $db->Query(
-            "SELECT COUNT(*) FROM {admin_requests} WHERE project_id = ? AND resolved_by = '0'",
+            'SELECT COUNT(*) FROM {admin_requests} WHERE project_id = ? AND resolved_by = 0',
             array($proj->id));
     list($count) = $db->fetchRow($sql);
 
@@ -152,18 +150,28 @@ if ($proj->id && $user->perms('manage_project')) {
 }
 if ($user->perms('is_admin')) {
     $sql = $db->Query(
-    	    "SELECT COUNT(*) FROM {admin_requests} WHERE request_type = '3' AND resolved_by = '0'");
+    	    'SELECT COUNT(*) FROM {admin_requests} WHERE request_type = 3 AND project_id = 0 AND resolved_by = 0');
     list($count) = $db->fetchRow($sql);
     $page->assign('admin_pendingreq_num', $count);
 }
 
-$sql = $db->Query(
-        'SELECT  project_id, project_title, project_is_active, others_view,
-                 upper(project_title) AS sort_names
-           FROM  {projects}
-       ORDER BY  sort_names');
+# a bit hacky: First 3 MUST be project_id, project_title, project_is_active in this order!
+# This first 3 indexes are used by tpl_options currently..
+# removed upper(project_title) for sorting, should be handled by database collation (utf8_general_ci)
+$sql = $db->Query('
+	SELECT project_id, project_title, project_is_active, others_view, default_entry
+	FROM {projects}
+	ORDER BY project_is_active DESC, project_title'
+);
 
-$fs->projects = array_filter($db->FetchAllArray($sql), array($user, 'can_view_project'));
+# new: project_id as index for easier access, needs testing and maybe simplification 
+# similiar situation also includes/class.flyspray.php function listProjects()
+$sres=$db->FetchAllArray($sql);
+foreach($sres as $p){
+	$prs[$p['project_id']]=$p;
+}
+$fs->projects = array_filter($prs, array($user, 'can_view_project'));
+
 
 // Get e-mail addresses of the admins
 if ($user->isAnon() && !$fs->prefs['user_notify']) {
@@ -184,8 +192,10 @@ $page->pushTpl('header.tpl');
 
 if (!defined('NO_DO')) {
     require_once(BASEDIR . "/scripts/$do.php");
+} else{
+    # not nicest solution, NO_DO currently only used on register actions 
+    $page->pushTpl('register.ok.tpl');
 }
-
 $page->pushTpl('footer.tpl');
 $page->setTheme($proj->prefs['theme_style']);
 $page->render();
@@ -196,5 +206,5 @@ if(isset($_SESSION)) {
         $currentrequest = md5(serialize($_POST));
         unset($_SESSION['requests_hash'][$currentrequest]);
     }
-    unset($_SESSION['ERROR'], $_SESSION['SUCCESS']);
+    unset($_SESSION['ERROR'], $_SESSION['ERRORS'], $_SESSION['SUCCESS']);
 }
