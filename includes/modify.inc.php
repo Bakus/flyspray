@@ -1093,10 +1093,17 @@ switch ($action = Req::val('action'))
 		'disable_lostpw','disable_changepw','days_before_alert', 'emailNoHTML', 'need_approval', 'pages_welcome_msg',
 		'active_oauths', 'only_oauth_reg', 'enable_avatars', 'max_avatar_size', 'default_order_by',
 		'max_vote_per_day', 'votes_per_project', 'url_rewriting',
-		'custom_style');
+		'custom_style', 'def_feedback_proj', 'enable_anon_feedback');
         if(Post::val('need_approval') == '1' && Post::val('spam_proof')){
             unset($_POST['spam_proof']); // if self register request admin to approve, disable spam_proof
         	// if you think different, modify functions in class.user.php directing different regiser tpl
+        }
+        if(Post::val('enable_anon_feedback')){
+            $feedback_proj = new Project(Post::num('def_feedback_proj'));
+            if(!$feedback_proj->prefs['anon_open']) {
+                Flyspray::show_error(L('anonfeedbackopentask'));
+                break;
+            }
         }
 	if (Post::val('url_rewriting') == '1' && !$fs->prefs['url_rewriting']) {
 		# Setenv can't be used to set the env variable in .htaccess, because apache module setenv is often disabled on hostings and brings server error 500.

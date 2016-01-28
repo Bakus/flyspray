@@ -921,6 +921,9 @@ Pozdrowienia,",
 'verifyemailaddress'      => 'Potwierdź adres e-mail',
 'hideemails'              => 'Ukryj adresy e-mail użytkowników',
 'hidemyemail'             => 'Ukryj mój adres e-mail',
-'exporttasklist'          => 'Eksportuj listę zgłoszeń'
+'exporttasklist'          => 'Eksportuj listę zgłoszeń',
+'deffeedbackproj'         => 'Domyślny projekt dla feedback',
+'enableanonfeedback'      => 'Pozwól na anonimowy feedback',
+'anonfeedbackopentask'    => 'Allow anonymous users to open tasks in feedback project to enable anonymous feedback.'
 );
 ?>

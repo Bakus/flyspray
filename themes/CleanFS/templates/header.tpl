@@ -18,7 +18,7 @@
     <link media="screen" href="<?php echo Filters::noXSS($this->themeUrl()); ?>theme.css" rel="stylesheet" type="text/css" />
     <link media="print"  href="<?php echo Filters::noXSS($this->themeUrl()); ?>theme_print.css" rel="stylesheet" type="text/css" />
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
-<?php 
+<?php
 # include an optional, customized css file for tag styling (all projects, loads even for guests)
 if(is_readable(BASEDIR.'/themes/'.$this->_theme.'tags.css')): ?>
 	<link href="<?php echo Filters::noXSS($this->themeUrl()); ?>tags.css" rel="stylesheet" type="text/css" />
@@ -59,6 +59,11 @@ if(is_readable(BASEDIR.'/themes/'.$this->_theme.'tags.css')): ?>
     <?php foreach(TextFormatter::get_javascript() as $file): ?>
         <script type="text/javascript" src="<?php echo Filters::noXSS($baseurl); ?>plugins/<?php echo Filters::noXSS($file); ?>"></script>
     <?php endforeach; ?>
+
+    <script src="<?php echo Filters::noXSS($baseurl); ?>js/feedback/jquery-latest.min.js"></script>
+    <script src="<?php echo Filters::noXSS($baseurl); ?>js/feedback/feedback.js"></script>
+    <link rel="stylesheet" href="<?php echo Filters::noXSS($baseurl); ?>js/feedback/feedback.min.css" />
+
   </head>
   <body onload="<?php
         if (isset($_SESSION['SUCCESS']) && isset($_SESSION['ERROR'])):

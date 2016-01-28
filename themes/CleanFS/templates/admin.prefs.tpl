@@ -62,11 +62,23 @@ function ShowHidePassword(id) {
           <input id="pagetitle" name="page_title" type="text" class="text" maxlength="100" value="<?php echo Filters::noXSS($fs->prefs['page_title']); ?>" />
         </li>
 
+          <li>
+              <label for="defaultproject"><?php echo Filters::noXSS(L('defaultproject')); ?></label>
+              <select id="defaultproject" name="default_project">
+                  <?php echo tpl_options(array_merge(array(0 => L('allprojects')), Flyspray::listProjects()), $fs->prefs['default_project']); ?>
+              </select>
+          </li>
+
         <li>
-          <label for="defaultproject"><?php echo Filters::noXSS(L('defaultproject')); ?></label>
-          <select id="defaultproject" name="default_project">
-            <?php echo tpl_options(array_merge(array(0 => L('allprojects')), Flyspray::listProjects()), $fs->prefs['default_project']); ?>
+          <label for="deffeedbackproj"><?php echo Filters::noXSS(L('deffeedbackproj')); ?></label>
+          <select id="deffeedbackproj" name="def_feedback_proj">
+            <?php echo tpl_options(array_merge(array(0 => L('allprojects')), Flyspray::listProjects()), $fs->prefs['def_feedback_proj']); ?>
           </select>
+        </li>
+
+        <li>
+          <label for="enable_anon_feedback"><?php echo Filters::noXSS(L('enableanonfeedback')); ?></label>
+          <?php echo tpl_checkbox('enable_anon_feedback', $fs->prefs['enable_anon_feedback'], 'enable_anon_feedback', 1); ?>
         </li>
 
         <li>

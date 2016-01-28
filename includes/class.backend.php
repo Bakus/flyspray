@@ -1202,7 +1202,7 @@ abstract class Backend
 
         if ($user->isAnon()) {
             $anonuser = array();
-            $anonuser[$email] = array('recipient' => $args['anon_email'], 'lang' => $fs->prefs['lang_code']);
+            $anonuser[$args['anon_email']] = array('recipient' => $args['anon_email'], 'lang' => $proj->prefs['lang_code']);
             $recipients = array($anonuser);
             $notify->Create(NOTIFY_ANON_TASK, $task_id, $token,
                             $recipients, NOTIFY_EMAIL, $proj->prefs['lang_code']);

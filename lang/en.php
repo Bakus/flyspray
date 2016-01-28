@@ -1070,6 +1070,9 @@ Regards,',
 'movecursordown'          => 'move cursor down',
 'taskdetails'             => 'Task Details',
 'taskediting'             => 'Task Editing',
-'savetask'                => 'save task'
+'savetask'                => 'save task',
+'deffeedbackproj'         => 'Default feedback project',
+'enableanonfeedback'      => 'Enable anonymous feedback',
+'anonfeedbackopentask'    => 'Allow anonymous users to open tasks in feedback project to enable anonymous feedback.'
 );
 ?>
