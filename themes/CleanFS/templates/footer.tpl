@@ -8,7 +8,7 @@
 </p>
 <script type="text/javascript">
     $.feedback({
-        ajaxURL: 'http://flyspray.bakus.v.rico.egmit/index.php?do=feedback',
+        ajaxURL: 'http://kredytum.ilware.web.rico.egmit/feedback/forward',
         html2canvasURL: '<?php echo Filters::noXSS($baseurl); ?>js/feedback/html2canvas.js',
         postHTML: false
     });

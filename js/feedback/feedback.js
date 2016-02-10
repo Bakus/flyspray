@@ -12,6 +12,7 @@
 			postBrowserInfo: 		true,
 			postHTML:				true,
 			postURL:				true,
+			referer:				true,
 			proxy:					undefined,
 			letterRendering:		false,
 			initButtonText: 		'Wyślij zgłoszenie',
@@ -159,6 +160,10 @@
 				if (settings.postURL) {
 					post.url = document.URL;
 					$('#feedback-page-info').show();
+				}
+
+				if(settings.referer){
+					post.browser.referer = document.referrer;
 				}
 
 				if (settings.postHTML) {
@@ -512,6 +517,10 @@
 
 						post.img = img;
 						post.note = $('#feedback-note').val();
+						$(document).ajaxSend(function (event, request, settings) {
+							console.log('asd');
+							request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+						});
                         var data = {feedback: JSON.stringify(post)};
 						$.ajax({
 							url: settings.ajaxURL,
