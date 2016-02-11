@@ -59,11 +59,6 @@ if(is_readable(BASEDIR.'/themes/'.$this->_theme.'tags.css')): ?>
     <?php foreach(TextFormatter::get_javascript() as $file): ?>
         <script type="text/javascript" src="<?php echo Filters::noXSS($baseurl); ?>plugins/<?php echo Filters::noXSS($file); ?>"></script>
     <?php endforeach; ?>
-
-    <script src="<?php echo Filters::noXSS($baseurl); ?>js/feedback/jquery-latest.min.js"></script>
-    <script src="<?php echo Filters::noXSS($baseurl); ?>js/feedback/feedback.js"></script>
-    <link rel="stylesheet" href="<?php echo Filters::noXSS($baseurl); ?>js/feedback/feedback.min.css" />
-
   </head>
   <body onload="<?php
         if (isset($_SESSION['SUCCESS']) && isset($_SESSION['ERROR'])):

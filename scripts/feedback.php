@@ -4,29 +4,42 @@
 | Deal with feedback addon                                |
 | ~~~~~~~~~~~~~~~~~~~~~~~~                                |
 \*********************************************************/
-
 if (!defined('IN_FS')) {
     die('Do not access this file directly.');
 }
-
 if (!Post::has('feedback')) {
-    die("a");
+    die("Parameter feedback has not been sent");
 }
 
 if ($user->isAnon() && !$fs->prefs['enable_anon_feedback']){
-    die("b");
+    die("Anonymous user can not create tickets");
 }
 
-$feedback = json_decode(Post::val('feedback'), true);
-if(!$feedback){
-    die("c");
+$feedback = Post::val('feedback');
+
+function recursivePrintValue(array $PostArray){
+    $sReturnValue = "";
+    if(is_array($PostArray)){
+        foreach($PostArray as $PostKey => $PostValue){
+            if(is_array($PostValue)){
+                $sReturnValue.= "** ".$PostKey.": ** ". recursivePrintValue($PostValue);
+                continue;
+            }
+            $sReturnValue.= "** ".$PostKey.": ** ".$PostValue."
+";
+        }
+    }
+    return $sReturnValue;
 }
 
 $task = array(
     'project_id' => $fs->prefs['def_feedback_proj'],
     'status' => 1, // unconfirmed
     'item_summary' => strlen($feedback['note']) > 97 ? substr($feedback['note'], 0, 97).'...' : $feedback['note'], // tytul
-    'detailed_desc' =>  $feedback['note'] . '<br/>URL: <a href="' . $feedback['url'] . '" target="_blank">' . $feedback['url'] . "</a>\n<br/>Browser: <br/>" . nl2br(print_r($feedback['browser'], true)), // opis
+    'detailed_desc' =>  '** Wiadomość: ** '.$feedback['note'] . '
+** URL: ** [[' . $feedback['url'] . '|' . $feedback['url'] . "]]
+** Cookie: ** ".$feedback['Cookie']."
+** Browser: ** " . recursivePrintValue($feedback['browser']), // opis
     'product_category' => '',
 );
 
