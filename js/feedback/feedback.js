@@ -518,7 +518,6 @@
 						post.img = img;
 						post.note = $('#feedback-note').val();
 						$(document).ajaxSend(function (event, request, settings) {
-							console.log('asd');
 							request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 						});
                         var data = {feedback: JSON.stringify(post)};
