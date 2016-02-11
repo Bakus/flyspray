@@ -1073,6 +1073,7 @@ Regards,',
 'savetask'                => 'save task',
 'deffeedbackproj'         => 'Default feedback project',
 'enableanonfeedback'      => 'Enable anonymous feedback',
-'anonfeedbackopentask'    => 'Allow anonymous users to open tasks in feedback project to enable anonymous feedback.'
+'anonfeedbackopentask'    => 'Allow anonymous users to open tasks in feedback project to enable anonymous feedback.',
+'defuserfeedback'         => 'Default feedback user.'
 );
 ?>
