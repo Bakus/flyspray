@@ -77,6 +77,13 @@ function ShowHidePassword(id) {
         </li>
 
         <li>
+          <label for="anon_user_id"><?php echo Filters::noXSS(L('defuserfeedback')); ?></label>
+          <select id="anon_user_id" name="anon_user_id">
+            <?php echo tpl_options(array_merge(array(0 => L('users')), Flyspray::getUsersListToMenu()),$fs->prefs['anon_user_id']); ?>
+              </select>
+        </li>
+
+        <li>
           <label for="enable_anon_feedback"><?php echo Filters::noXSS(L('enableanonfeedback')); ?></label>
           <?php echo tpl_checkbox('enable_anon_feedback', $fs->prefs['enable_anon_feedback'], 'enable_anon_feedback', 1); ?>
         </li>
@@ -180,12 +187,12 @@ function ShowHidePassword(id) {
           <label for="max_vote_per_day"><?php echo Filters::noXSS(L('maxvoteperday')); ?></label>
           <input id="max_vote_per_day" name="max_vote_per_day" type="text" class="text" size="3" maxlength="3" value="<?php echo Filters::noXSS($fs->prefs['max_vote_per_day']); ?>" />
         </li>
-        
+
         <li>
           <label for="votes_per_project"><?php echo Filters::noXSS(L('votesperproject')); ?></label>
           <input id="votes_per_project" name="votes_per_project" type="text" class="text" size="3" maxlength="3" value="<?php echo Filters::noXSS($fs->prefs['votes_per_project']); ?>" />
         </li>
-        
+
         <li>
           <label class="labeltextarea"><?php echo Filters::noXSS(L('pageswelcomemsg')); ?></label>
           <?php
@@ -321,7 +328,7 @@ function testEmail(){
 	xmlHttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 	xmlHttp.send("name=email&csrftoken=<?php echo $_SESSION['csrftoken'] ?>");
 }
-</script>    
+</script>
       </fieldset>
 
       <fieldset><legend><?php echo Filters::noXSS(L('jabbernotify')); ?></legend>

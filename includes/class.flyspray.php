@@ -475,6 +475,27 @@ class Flyspray
         return $db->FetchAllArray($res);
     }
 
+    /**
+     * Returns a list of a all users reqired to admin menu panel
+     * @access public static
+     * @param bool $active_only show only active users
+     * @return array
+     * @version 1.0
+     */
+    public static function getUsersListToMenu($active_only = true)
+    {
+        global $db;
+        $query = 'SELECT user_id, user_name
+          FROM {users}
+          ';
+        if ($active_only) {
+            $query .= ' WHERE account_enabled = 1';
+        }
+        $query .= ' ORDER BY UPPER(user_name) ASC';
+        $res = $db->Query($query);
+        return $db->FetchAllArray($res);
+    }
+
     // }}}
     // List languages {{{
     /**

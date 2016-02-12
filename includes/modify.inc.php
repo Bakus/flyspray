@@ -1093,7 +1093,7 @@ switch ($action = Req::val('action'))
 		'disable_lostpw','disable_changepw','days_before_alert', 'emailNoHTML', 'need_approval', 'pages_welcome_msg',
 		'active_oauths', 'only_oauth_reg', 'enable_avatars', 'max_avatar_size', 'default_order_by',
 		'max_vote_per_day', 'votes_per_project', 'url_rewriting',
-		'custom_style', 'def_feedback_proj', 'enable_anon_feedback');
+		'custom_style', 'def_feedback_proj', 'enable_anon_feedback','anon_user_id');
         if(Post::val('need_approval') == '1' && Post::val('spam_proof')){
             unset($_POST['spam_proof']); // if self register request admin to approve, disable spam_proof
         	// if you think different, modify functions in class.user.php directing different regiser tpl
@@ -1132,7 +1132,6 @@ switch ($action = Req::val('action'))
 	} else{
 		$_POST['default_order_by']=$_POST['default_order_by'].' '.$_POST['default_order_by_dir'];
 	}
-	
 	
         foreach ($settings as $setting) {
             $db->Query('UPDATE {prefs} SET pref_value = ? WHERE pref_name = ?',

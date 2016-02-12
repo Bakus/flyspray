@@ -14,6 +14,9 @@ if (!Post::has('feedback')) {
 if ($user->isAnon() && !$fs->prefs['enable_anon_feedback']){
     die("Anonymous user can not create tickets");
 }
+if(!$fs->prefs['anon_user_id'] || $fs->prefs['anon_user_id'] == 0){
+    die("Default user isnt set to project.");
+}
 
 $feedback = Post::val('feedback');
 
@@ -39,13 +42,11 @@ $task = array(
     'detailed_desc' =>  '** Wiadomość: ** '.$feedback['note'] . '
 ** URL: ** [[' . $feedback['url'] . '|' . $feedback['url'] . "]]
 ** Cookie: ** ".$feedback['Cookie']."
+** Zgłaszający: ** ".$feedback['login']."
 ** Browser: ** " . recursivePrintValue($feedback['browser']), // opis
     'product_category' => '',
 );
-
-if ($user->isAnon()){
-    $task['anon_email'] = 'krzysztof.blachut@egm.pl'; // wysylac na domyslny? pytac? cokolwiek? ;)
-}
+$user = new User($fs->prefs['anon_user_id'], $fs->prefs['def_feedback_proj']);
 
 list($task_id, $token) = Backend::create_task($task);
 
