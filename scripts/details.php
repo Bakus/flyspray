@@ -40,18 +40,34 @@ if (!$user->can_view_task($task_details)) {
 	$page->setTitle(sprintf('FS#%d : %s', $task_details['task_id'], $task_details['item_summary']));
 
 	if ((Get::val('edit') || (Post::has('item_summary') && !isset($_SESSION['SUCCESS']))) && $user->can_edit_task($task_details)) {
-		$result = $db->Query('SELECT DISTINCT u.user_id, u.user_name, u.real_name, g.group_name, g.project_id
-                            FROM {users} u
-                       LEFT JOIN {users_in_groups} uig ON u.user_id = uig.user_id
-                       LEFT JOIN {groups} g ON g.group_id = uig.group_id
-                           WHERE (g.show_as_assignees = 1 OR g.is_admin = 1)
-                                 AND (g.project_id = 0 OR g.project_id = ?) AND u.account_enabled = 1
-                        ORDER BY g.project_id ASC, g.group_name ASC, u.user_name ASC', ($proj->id ? $proj->id : -1)); // FIXME: -1 is a hack. when $proj->id is 0 the query fails
+		$result = $db->Query('
+			SELECT g.project_id, u.user_id, u.user_name, u.real_name, g.group_id, g.group_name
+			FROM {users} u
+			JOIN {users_in_groups} uig ON u.user_id = uig.user_id
+			JOIN {groups} g ON g.group_id = uig.group_id
+			WHERE (g.show_as_assignees = 1 OR g.is_admin = 1)
+			AND (g.project_id = 0 OR g.project_id = ?)
+			AND u.account_enabled = 1
+			ORDER BY g.project_id ASC, g.group_name ASC, u.user_name ASC',
+			($proj->id ? $proj->id : -1)
+		); // FIXME: -1 is a hack. when $proj->id is 0 the query fails
+
 		$userlist = array();
+		$userids = array();
 		while ($row = $db->FetchRow($result)) {
-			$userlist[$row['group_name']][] = array(0 => $row['user_id'], 
-                            1 => sprintf('%s (%s)', $row['user_name'], $row['real_name']));
+			if( !in_array($row['user_id'], $userids) ){
+				$userlist[$row['group_id']][] = array(
+					0 => $row['user_id'],
+					1 => sprintf('%s (%s)', $row['user_name'], $row['real_name']),
+					2 => $row['project_id'],
+					3 => $row['group_name']
+				);
+				$userids[]=$row['user_id'];
+			} else{
+				# user is probably in a global group with assignee permission listed, so no need to show second time in a project group.
+			}
 		}
+
 		if (is_array(Post::val('rassigned_to'))) {
 			$page->assign('assignees', Post::val('rassigned_to'));
 		} else {
@@ -59,6 +75,62 @@ if (!$user->can_view_task($task_details)) {
 			$page->assign('assignees', $db->FetchCol($assignees));
 		}
 		$page->assign('userlist', $userlist);
+
+		# Build the category select array, a movetask or normal taskedit
+		# then in the template just use tpl_select($catselect);
+
+		# keep last category selection
+		$catselected=Req::val('product_category', $task_details['product_category']);
+		if(isset($move) && $move==1){
+			# listglobalcats
+			$gcats=$proj->listCategories(0);
+			if( count($gcats)>0){
+				foreach($gcats as $cat){
+					$gcatopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$gcatopts[count($gcatopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options'][]=array('optgroup'=>1, 'label'=>L('categoriesglobal'), 'options'=>$gcatopts);
+			}
+			# listprojectcats
+			$pcats=$proj->listCategories($proj->id);
+			if( count($pcats)>0){
+				foreach($pcats as $cat){
+					$pcatopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$pcatopts[count($pcatopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options'][]=array('optgroup'=>1, 'label'=>L('categoriesproject'), 'options'=>$pcatopts);
+			}
+			# listtargetcats
+			$tcats=$toproject->listCategories($toproject->id);
+			if( count($tcats)>0){
+				foreach($tcats as $cat){
+					$tcatopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$tcatopts[count($tcatopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options'][]=array('optgroup'=>1, 'label'=>L('categoriestarget'), 'options'=>$tcatopts);
+			}
+		}else{
+			# just the normal merged global/projectcats
+			$cats=$proj->listCategories();
+			if( count($cats)>0){
+				foreach($cats as $cat){
+					$catopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$catopts[count($catopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options']=$catopts;
+			}
+		}
+		$catsel['name']='product_category';
+		$catsel['attr']['id']='category';
+		$page->assign('catselect', $catsel);
 
 		# user tries to move a task to a different project:
 		if(isset($move) && $move==1){

@@ -38,22 +38,31 @@ class effort
     /**
      * Manually add effort to the effort table for this issue / user.
      *
-     * @param $effort_to_add int Amount of Effort in hours to add to effort table.
+     * @param $effort_to_add int amount of effort in hh:mm to add to effort table.
      */
     public function addEffort($effort_to_add, $proj)
     {
         global $db;
 
+        # note: third parameter seem useless, not used by EditStringToSeconds().., maybe drop it..
         $effort = self::EditStringToSeconds($effort_to_add, $proj->prefs['hours_per_manday'], $proj->prefs['estimated_effort_format']);
         if ($effort === FALSE) {
             Flyspray::show_error(L('invalideffort'));
-            return;
+            return false;
         }
 
-        $db->Query('INSERT INTO  {effort}
-                                         (task_id, date_added, user_id,start_timestamp,end_timestamp,effort)
-                                 VALUES  ( ?, ?, ?, ?,?,? )',
-            array   ($this->_task_id, time(), $this->_userId,time(),time(),$effort));
+        # quickfix to avoid useless table entries.
+        if($effort==0){ 
+            Flyspray::show_error(L('zeroeffort'));
+            return false;
+        } else{
+            $db->Query('INSERT INTO {effort}
+                (task_id, date_added, user_id,start_timestamp,end_timestamp,effort)
+                VALUES  ( ?, ?, ?, ?,?,? )',
+                array($this->_task_id, time(), $this->_userId,time(),time(),$effort)
+            );
+            return true;
+        }
     }
 
     /**
@@ -106,15 +115,21 @@ class effort
     }
 
     /**
-     * Removes any outstanding tracking requests for this task for this user, as a user can only have
-     * one tracking request at any time, this should only ever return a row count of one.
+     * Removes any outstanding tracking requests for this task for this user.
      */
     public function cancelTracking()
     {
         global $db;
-
-        $db->Query('DELETE FROM {effort}  WHERE user_id='.$this->_userId.' AND task_id='.$this->_task_id.' AND end_timestamp IS NULL;');
-
+    
+        # 2016-07-04: also remove invalid finished 0 effort entries that were accidently possible up to Flyspray 1.0-rc
+        $db->Query('DELETE FROM {effort}
+            WHERE user_id='.$this->_userId.'
+            AND task_id='.$this->_task_id.'
+            AND (
+                end_timestamp IS NULL
+                OR (start_timestamp=end_timestamp AND effort=0)
+            );'
+        );
     }
 
     public function populateDetails()

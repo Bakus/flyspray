@@ -72,7 +72,7 @@ foreach ($merge as $group){
 }
 ?>
 <style>
-.perms {border-collapse:collapse;margin-top:20px;}
+.perms {border-collapse:collapse;margin-top:20px;display:block;}
 .perms tbody tr:hover {background-color:#eee;}
 .perms td, .perms th{border:1px solid #999;}
 .perms thead th, .perms thead td {text-align:center;}
@@ -103,12 +103,17 @@ foreach ($merge as $group){
 </thead>
 <tbody>
 <?php foreach ($perm_fields as $p): ?>
-<tr>
-<th><?php echo eL(str_replace('_', '', $p)); ?></th>
+<tr<?php 
+# TODO view_own_tasks
+echo ( ($p=='view_tasks' || $p=='view_groups_tasks' || $p=='view_own_tasks')  && $proj->prefs['others_view']) ? ' class="everybody"':'';
+echo ($p=='view_roadmap'   && $proj->prefs['others_viewroadmap']) ?' class="everybody"':'';
+echo ($p=='open_new_tasks' && $proj->prefs['anon_open']) ?         ' class="everybody"':'';
+?>>
+<th<?php echo ($p=='modify_own_tasks') ? ' title="Fields allowed to change: '.implode(', ', $proj->prefs['basic_fields']).'"':''; ?>><?php echo eL(str_replace('_', '', $p)); ?></th>
 <?php
 require_once('permicons.tpl');
 $i=0; 
-# TODO: make it visible that a granted 'view_tasks' overrules 'view_groups_tasks' and 'own_tasks'. (like is_admin)
+
 foreach($perms[$p] as $val){
   if ($perms['is_admin'][$i]==1 && $val == 0){
     if(isset($permicons[$p])){

@@ -28,32 +28,32 @@
             <?php echo tpl_options(Flyspray::listLangs(), Post::val('lang_code', $proj->prefs['lang_code']), true); ?>
           </select>
       </li>
-
-      <li>
-        <label class="labeltextarea"><?php echo Filters::noXSS(L('pagesintromsg')); ?></label>
-          <?php
-            $pages = array(
-                'index' => L('tasklist'),
-                'toplevel' => L('toplevel'),
-                'newmultitasks' => L('addmultipletasks'),
-                'details' => L('details'),
-                'roadmap' => L('roadmap'),
-                'newtask' => L('newtask'),
-                'reports' => L('reports'),
-                'depends' => L('dependencygraph'),
-                'pm' => L('manageproject'));
-            $selectedPages = explode(' ', $proj->prefs['pages_intro_msg']);
-            echo tpl_double_select('pages_intro_msg', $pages, $selectedPages, false, false);
-          ?>
-      </li>
-
-      <li>
-          <label class="labeltextarea" for="intromesg"><?php echo Filters::noXSS(L('intromessage')); ?></label>
-          <?php if (defined('FLYSPRAY_HAS_PREVIEW')): ?>
+      
+      <?php echo tpl_checkbox('disp_intro', Post::val('disp_intro', $proj->prefs['disp_intro']), 'disp_intro'); ?>
+      <label for="disp_intro"><?php echo Filters::noXSS(L('dispintro')); ?></label>
+      <li class="disp_introdep">
+        <label class="labeltextarea" for="intromesg"><?php echo Filters::noXSS(L('intromessage')); ?></label>
+        <?php if (defined('FLYSPRAY_HAS_PREVIEW')): ?>
           <div class="hide preview" id="preview"></div>
           <button tabindex="9" type="button" onclick="showPreview('intromesg', '<?php echo Filters::noJsXSS($baseurl); ?>', 'preview')"><?php echo Filters::noXSS(L('preview')); ?></button>
-          <?php endif; ?>
-          <?php echo TextFormatter::textarea('intro_message', 8, 70, array('accesskey' => 'r', 'tabindex' => 8, 'id' => 'intromesg'), Post::val('intro_message', $proj->prefs['intro_message'])); ?>
+        <?php endif; ?>
+        <?php echo TextFormatter::textarea('intro_message', 8, 70, array('accesskey' => 'r', 'tabindex' => 8, 'id' => 'intromesg'), Post::val('intro_message', $proj->prefs['intro_message'])); ?>
+
+        <label class="labeltextarea"><?php echo Filters::noXSS(L('pagesintromsg')); ?></label>
+        <?php
+          $pages = array(
+            'index' => L('tasklist'),
+            'toplevel' => L('toplevel'),
+            'newmultitasks' => L('addmultipletasks'),
+            'details' => L('details'),
+            'roadmap' => L('roadmap'),
+            'newtask' => L('newtask'),
+            'reports' => L('reports'),
+            'depends' => L('dependencygraph'),
+            'pm' => L('manageproject'));
+          $selectedPages = explode(' ', $proj->prefs['pages_intro_msg']);
+          echo tpl_double_select('pages_intro_msg', $pages, $selectedPages, false, false);
+        ?>
       </li>
 
       <li>
@@ -71,23 +71,23 @@
       </li>
 
       <li>
-          <label for="disp_intro"><?php echo Filters::noXSS(L('dispintro')); ?></label>
-          <?php echo tpl_checkbox('disp_intro', Post::val('disp_intro', $proj->prefs['disp_intro']), 'disp_intro'); ?>
-      </li>
-
-      <li>
           <label><?php echo tpl_checkbox('delete_project', null); ?> <?php echo Filters::noXSS(L('deleteproject')); ?></label>
           <select name="move_to"><?php echo tpl_options(array_merge(array(0 => L('none')), Flyspray::listProjects()), null, false, null, (string) $proj->id); ?></select>
       </li>
-
-      <li>
-          <label for="othersview"><?php echo Filters::noXSS(L('othersview')); ?></label>
-          <?php echo tpl_checkbox('others_view', Post::val('others_view', $proj->prefs['others_view']), 'othersview'); ?>
-      </li>
-
+      
       <li>
           <label for="othersviewroadmap"><?php echo Filters::noXSS(L('othersviewroadmap')); ?></label>
-          <?php echo tpl_checkbox('others_viewroadmap', Post::val('others_viewroadmap', $proj->prefs['others_viewroadmap']), 'othersviewroadmap'); ?>
+          <?php 
+          # note for FS1.0: This setting is currently also used as anon/public permission for: show project name, activity, stats, milestone progress
+          # but not listing tasks per milestone
+          echo tpl_checkbox('others_viewroadmap', Post::val('others_viewroadmap', $proj->prefs['others_viewroadmap']), 'othersviewroadmap'); ?>
+      </li>
+      
+      <li>
+          <label for="othersview"><?php echo Filters::noXSS(L('othersview')); ?></label>
+          <?php
+          # note for FS1.0: This setting is current anon/public task view permission for: listing tasks (toplevel, tasklist, roadmap, RSS feed, ..)
+          echo tpl_checkbox('others_view', Post::val('others_view', $proj->prefs['others_view']), 'othersview'); ?>
       </li>
 
       <li>
@@ -117,8 +117,8 @@
           <label for="freetagging"><?php echo Filters::noXSS(L('freetagging')); ?></label>
           <?php echo tpl_checkbox('freetagging', Post::val('freetagging', $proj->prefs['freetagging']), 'freetagging'); ?>
       </li>
-      </ul>
-    </div>
+    </ul>
+  </div>
 
   <div id="lookandfeel" class="tab">
     <ul class="form_elements wide">
@@ -185,7 +185,7 @@
          ?>
 
         <li>
-          <label><?php echo Filters::noXSS(L('defaultorderby')); ?></label>
+          <label for="default_order_by"><?php echo Filters::noXSS(L('defaultorderby')); ?></label>
           <select id="default_order_by" name="default_order_by">
             <?php echo tpl_options($columnnames, $proj->prefs['sorting'][0]['field'], false); ?>
           </select>
@@ -196,7 +196,7 @@
         </li>
 
         <li>
-          <label><?php echo Filters::noXSS(L('defaultorderby2')); ?></label>
+          <label for="default_order_by2"><?php echo Filters::noXSS(L('defaultorderby2')); ?></label>
           <select id="default_order_by2" name="default_order_by2">
             <?php echo tpl_options($columnnames, $proj->prefs['sorting'][1]['field'], false); ?>
           </select>

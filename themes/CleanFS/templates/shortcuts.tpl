@@ -1,5 +1,6 @@
 <input type="checkbox" id="s_shortcuts" />
 <label for="s_shortcuts" id="shortcutlabel"><i class="fa fa-keyboard-o"></i> <?php echo Filters::noXSS(L('keyboardshortcuts')); ?></label>
+<label for="s_shortcuts" id="shortcutsmodal"></label>
 <div id="shortcuts">
 <label for="s_shortcuts" id="shortcutclose"><i class="fa fa-close fa-2x"></i></label>
 <h3><?php echo Filters::noXSS(L('availablekeybshortcuts')); ?></h3>
@@ -20,34 +21,11 @@
 <ul>
 <li><kbd>n</kbd> <?php echo Filters::noXSS(L('nexttask')); ?></li>
 <li><kbd>p</kbd> <?php echo Filters::noXSS(L('previoustask')); ?></li>
+<li><kbd>SHIFT+ALT+e</kbd> <kbd>ENTER</kbd> <?php echo Filters::noXSS(L('edittask')); ?></li>
+<li><kbd>SHIFT+ALT+y</kbd> <?php echo Filters::noXSS(L('closetask')); ?></li>
 </ul>
 <h4><?php echo Filters::noXSS(L('taskediting')); ?></h4>
 <ul>
 <li><kbd>SHIFT+ALT+s</kbd> <?php echo Filters::noXSS(L('savetask')); ?></li>
 </ul>
-TODO:complete the list<br /> for accesskey usage different shortcuts on Windows, Mac, Linux .., currently shown for Firefox
 </div>
-<style>
-#shortcutlabel { cursor:pointer; }
-#shortcutclose { cursor:pointer;float:right; }
-#shortcuts {
-  display:none;
-  position:fixed;
-  z-index:100;
-  background:#fff;
-  border:1px solid #999;
-  border-radius:10px;
-  padding:10px;
-  box-shadow:0 0 400px #000;
-  top:50%;
-  height:500px;
-  margin-top:-250px;
-  left:50%;
-  width:300px;
-  margin-left:-150px;
-}
-#s_shortcuts {display:none;}
-#s_shortcuts:checked ~ #shortcuts {
-  display: block;
-}
-</style>

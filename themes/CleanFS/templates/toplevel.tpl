@@ -41,18 +41,19 @@ foreach ($projects as $project): ?>
 <h2><a href="<?php echo Filters::noXSS(CreateUrl('project', $project['project_id'])); ?>"><?php echo Filters::noXSS($project['project_title']); ?></a></h2>
 
 <table class="toplevel">
+<?php if($user->can_view_project($project['project_id'])): ?>
   <tr>
     <th><?php echo Filters::noXSS(L('viewtasks')); ?></th>
     <td>
-        <a href="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?do=index&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>&amp;status[]="><?php echo Filters::noXSS(L('All')); ?></a> -
-        <a href="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?do=index&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>&amp;status[]=open"><?php echo Filters::noXSS(L('open')); ?></a> -
-        <a href="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?do=index&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>&amp;openedfrom=-1+week"><?php echo Filters::noXSS(L('recentlyopened')); ?></a>
-        <?php if (!$user->isAnon()): ?>
-          <br />
-          <a href="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?do=index&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>&amp;dev=<?php echo Filters::noXSS($user->id); ?>"><?php echo Filters::noXSS(L('assignedtome')); ?></a> -
-          <a href="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?do=index&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>&amp;only_watched=1"><?php echo Filters::noXSS(L('taskswatched')); ?></a> -
-          <a href="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?do=index&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>&amp;opened=<?php echo Filters::noXSS($user->id); ?>"><?php echo Filters::noXSS(L('tasksireported')); ?></a>
-        <?php endif; ?>
+      <a href="<?php echo CreateURL('tasklist', $project['project_id'], null, array('status[]'=>'')); ?>"><?php echo Filters::noXSS(L('All')); ?></a> -
+      <a href="<?php echo CreateURL('tasklist', $project['project_id'], null, array('status[]'=>'open')); ?>"><?php echo Filters::noXSS(L('open')); ?></a> -
+      <a href="<?php echo CreateURL('tasklist', $project['project_id'], null, array('openedfrom'=>'-1 week')); ?>"><?php echo Filters::noXSS(L('recentlyopened')); ?></a>
+      <?php if (!$user->isAnon()): ?>
+        <br />
+        <a href="<?php echo CreateURL('tasklist', $project['project_id'], null, array('dev'=>$user->id, 'devsm'=>'userid')); ?>"><?php echo Filters::noXSS(L('assignedtome')); ?></a> -
+        <a href="<?php echo CreateURL('tasklist', $project['project_id'], null, array('only_watched'=>1)); ?>"><?php echo Filters::noXSS(L('taskswatched')); ?></a> -
+        <a href="<?php echo CreateURL('tasklist', $project['project_id'], null, array('opened'=>$user->id, 'openedsm'=>'userid')); ?>"><?php echo Filters::noXSS(L('tasksireported')); ?></a>
+      <?php endif; ?>
     </td>
     
     <?php if ($project_count == 1 and isset($most_wanted[$project['project_id']])): ?>
@@ -76,6 +77,10 @@ foreach ($projects as $project): ?>
     </td>
     <?php endif; ?>
   </tr>
+<?php endif; ?>  
+<?php
+# lets say if someone can view normal tasks of a project, then activity graphs are allowed.
+if($user->can_view_project($project['project_id']) ) : ?>
   <tr>
     <th><?php echo Filters::noXSS(L('activity')); ?></th>
   	<td><span class="activity" title="red line=today"><img width="160px" height="25px" src="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?line=0066CC&amp;do=activity&amp;project_id=<?php echo Filters::noXSS($project['project_id']); ?>&amp;graph=project"/></span></td>
@@ -86,6 +91,8 @@ foreach ($projects as $project): ?>
   	<td><span class="activity" title="red line=today"><img width="160px" height="25px" src="<?php echo Filters::noXSS($_SERVER['SCRIPT_NAME']); ?>?line=0066CC&amp;do=activity&amp;user_id=<?php echo Filters::noXSS($user->id); ?>&amp;project_id=<?php echo Filters::noXSS($project['project_id']); ?>&amp;graph=user"/></span></td>
   </tr>
   <?php endif; ?>
+<?php endif; ?>
+<?php if($projprefs[$project['project_id']]['others_viewroadmap'] || ($user->perms('view_roadmap', $project['project_id'])) ) : ?>
   <tr>
     <th><?php echo Filters::noXSS(L('stats')); ?></th>
     <td><?php echo Filters::noXSS($stats[$project['project_id']]['open']); ?> <?php echo Filters::noXSS(L('opentasks')); ?>, <?php echo Filters::noXSS($stats[$project['project_id']]['all']); ?> <?php echo Filters::noXSS(L('totaltasks')); ?>.</td>
@@ -93,54 +100,49 @@ foreach ($projects as $project): ?>
   <tr>
     <th><?php echo Filters::noXSS(L('progress')); ?></th>
     <td>
-        <?php echo Filters::noXSS($stats[$project['project_id']]['average_done']); ?>% <?php echo Filters::noXSS(L('done')); ?>
+      <?php echo Filters::noXSS($stats[$project['project_id']]['average_done']); ?>% <?php echo Filters::noXSS(L('done')); ?>
 
-        <?php $progressbar_value = $stats[$project['project_id']]['average_done']; ?>
+      <?php $progressbar_value = $stats[$project['project_id']]['average_done']; ?>
 
-        <div class="progress_bar_container">
-          <span><?php echo Filters::noXSS($stats[$project['project_id']]['average_done']); ?>%</span>
-          <div class="progress_bar" style="width:<?php echo Filters::noXSS($stats[$project['project_id']]['average_done']); ?>%"></div>
-        </div>        
+      <div class="progress_bar_container">
+        <span><?php echo Filters::noXSS($stats[$project['project_id']]['average_done']); ?>%</span>
+        <div class="progress_bar" style="width:<?php echo Filters::noXSS($stats[$project['project_id']]['average_done']); ?>%"></div>
+      </div>        
     </td>
   </tr>
-  <?php
-        if ($projprefs[$project['project_id']]['use_effort_tracking']) {
-        $total_estimated = 0;
-        $actual_effort = 0;
+<?php endif; ?>
+<?php
+  if($projprefs[$project['project_id']]['use_effort_tracking']) :
+    $total_estimated = 0;
+    $actual_effort = 0;
 
-        foreach($stats[$project['project_id']]['tasks'] as $task) {
-            $total_estimated += $task['estimated_effort'];
-            $effort = new effort($task['task_id'],0);
-            $effort->populateDetails();
+    if(isset($stats[$project['project_id']]['tasks'])) :
+      foreach($stats[$project['project_id']]['tasks'] as $task) {
+        $total_estimated += $task['estimated_effort'];
+        $effort = new effort($task['task_id'],0);
+        $effort->populateDetails();
 
-            foreach($effort->details as $details) {
-                $actual_effort += $details['effort'];
-            }
-            $effort = null;
+        foreach($effort->details as $details) {
+          $actual_effort += $details['effort'];
         }
+        $effort = null;
+      }
+    endif;
 
-  ?>
-  <?php if ($user->perms('view_estimated_effort', $project['project_id'])) { ?>
+    if ($user->perms('view_estimated_effort', $project['project_id'])) : ?>
   <tr>
-      <th>
-          <?php echo Filters::noXSS(L('estimatedeffortopen')); ?>
-      </th>
-      <td>
-          <?php echo effort::SecondsToString($total_estimated, $proj->prefs['hours_per_manday'], $proj->prefs['estimated_effort_format']); ?>
-      </td>
+    <th><?php echo Filters::noXSS(L('estimatedeffortopen')); ?></th>
+    <td><?php echo effort::SecondsToString($total_estimated, $proj->prefs['hours_per_manday'], $proj->prefs['estimated_effort_format']); ?></td>
   </tr>
-  <?php } ?>
-  <?php if ($user->perms('view_current_effort_done', $project['project_id'])) { ?>
+  <?php endif; ?>
+  <?php if ($user->perms('view_current_effort_done', $project['project_id'])) : ?>
   <tr>
-      <th>
-          <?php echo Filters::noXSS(L('currenteffortdoneopen')); ?>
-      </th>
-      <td>
-          <?php echo effort::SecondsToString($actual_effort, $proj->prefs['hours_per_manday'], $proj->prefs['current_effort_done_format']); ?>
-      </td>
+    <th><?php echo Filters::noXSS(L('currenteffortdoneopen')); ?></th>
+    <td><?php echo effort::SecondsToString($actual_effort, $proj->prefs['hours_per_manday'], $proj->prefs['current_effort_done_format']); ?></td>
   </tr>
-  <?php } ?>
-  <?php } ?>
+    <?php endif; ?>
+  <?php endif; ?>
+<?php if($projprefs[$project['project_id']]['others_view']==1): ?>
   <tr>
     <th><?php echo Filters::noXSS(L('feeds')); ?></th>
     <td>
@@ -157,6 +159,7 @@ foreach ($projects as $project): ?>
         <a href="<?php echo Filters::noXSS($baseurl); ?>feed.php?feed_type=atom&amp;topic=clo&amp;project=<?php echo Filters::noXSS($project['project_id']); ?>"><?php echo Filters::noXSS(L('closed')); ?></a>
     </td>
   </tr>
+<?php endif; ?>
 </table>
 </div>
 <?php
